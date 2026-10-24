@@ -235,6 +235,32 @@ void KoRgbU8ColorSpaceTester::testCompositeOps()
     }
 }
 
+void KoRgbU8ColorSpaceTester::testOklchCompositeOp()
+{
+    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoCompositeOp *op = cs->compositeOp(COMPOSITE_OVER_OKLCH);
+    QVERIFY(op);
+
+    KoColor src(cs);
+    KoColor dst(cs);
+    src.fromQColor(Qt::red);
+    dst.fromQColor(Qt::blue);
+
+    op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
+                  nullptr, 0, 1, 1, 0.5f);
+
+    const QColor result = dst.toQColor();
+    QVERIFY(result.red() > 160);
+    QVERIFY(result.green() < 80);
+    QVERIFY(result.blue() > 160);
+    QCOMPARE(result.alpha(), 255);
+
+    dst.fromQColor(Qt::blue);
+    op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
+                  nullptr, 0, 1, 1, 1.0f);
+    QCOMPARE(dst.toQColor(), QColor(Qt::red));
+}
+
 void KoRgbU8ColorSpaceTester::testCompositeOpsWithChannelFlags()
 {
     const KoColorSpace* cs = KoColorSpaceRegistry::instance()->rgb8();

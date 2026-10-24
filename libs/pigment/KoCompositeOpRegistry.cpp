@@ -108,6 +108,7 @@ KoCompositeOpRegistry::KoCompositeOpRegistry()
     m_map.insert(m_categories[5], KoID(COMPOSITE_NEGATION             ,  i18nc("Blending mode - Negation", "Negation")));
 
     m_map.insert(m_categories[6], koidCompositeOverStatic());
+    m_map.insert(m_categories[6], KoID(COMPOSITE_OVER_OKLCH, i18nc("Blending mode - Normal OKLCH", "Normal (OKLCH)")));
     m_map.insert(m_categories[6], KoID(COMPOSITE_BEHIND          ,  i18nc("Blending mode - Behind", "Behind")));
     m_map.insert(m_categories[6], KoID(COMPOSITE_GREATER         ,  i18nc("Blending mode - Greater", "Greater")));
     m_map.insert(m_categories[6], KoID(COMPOSITE_OVERLAY         ,  i18nc("Blending mode - Overlay", "Overlay")));

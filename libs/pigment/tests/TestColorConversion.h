@@ -13,6 +13,7 @@ class TestColorConversion : public QObject
 private Q_SLOTS:
     void testRGBHSV();
     void testRGBHSL();
+    void testOkLchInterpolation();
 };
 
 #endif

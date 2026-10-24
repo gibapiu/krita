@@ -20,6 +20,7 @@ class KoColorSpace;
 // This will reduce the need for runtime string comparisons.
 
 const QString COMPOSITE_OVER         = "normal";
+const QString COMPOSITE_OVER_OKLCH   = "normal_oklch";
 const QString COMPOSITE_ERASE        = "erase";
 const QString COMPOSITE_IN           = "in";
 const QString COMPOSITE_OUT          = "out";

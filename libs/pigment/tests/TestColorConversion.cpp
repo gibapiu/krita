@@ -4,8 +4,11 @@
 
 #include "TestColorConversion.h"
 #include "KoColorConversions.h"
+#include "KoGamutMappingUtils.h"
 
 #include <simpletest.h>
+
+#include <cmath>
 
 void TestColorConversion::testRGBHSV()
 {
@@ -195,6 +198,33 @@ void TestColorConversion::testRGBHSL()
     QCOMPARE(r, 0.5f);
     QCOMPARE(g, 0.25f);
     QCOMPARE(b, 0.75f);
+}
+
+void TestColorConversion::testOkLchInterpolation()
+{
+    constexpr float pi = 3.14159265358979323846f;
+
+    const auto fromLch = [pi](float lightness, float chroma, float hueDegrees) {
+        const float hue = hueDegrees * pi / 180.0f;
+        return QVector4D(lightness, chroma * std::cos(hue), chroma * std::sin(hue), 0.0f);
+    };
+
+    const QVector4D from = fromLch(0.4f, 0.1f, 350.0f);
+    const QVector4D to = fromLch(0.8f, 0.3f, 10.0f);
+    const QVector4D midpoint = KoGamutMappingUtils::interpolateOkLch(from, to, 0.5f);
+
+    QVERIFY(qAbs(midpoint.x() - 0.6f) < 1e-6f);
+    QVERIFY(qAbs(midpoint.y() - 0.2f) < 1e-6f);
+    QVERIFY(qAbs(midpoint.z()) < 1e-6f);
+
+    const QVector4D gray(0.4f, 0.0f, 0.0f, 0.0f);
+    const QVector4D blue = fromLch(0.8f, 0.2f, 240.0f);
+    const QVector4D grayToBlue = KoGamutMappingUtils::interpolateOkLch(gray, blue, 0.5f);
+    const QVector4D expectedGrayToBlue = fromLch(0.6f, 0.1f, 240.0f);
+
+    QVERIFY((grayToBlue - expectedGrayToBlue).length() < 1e-6f);
+    QCOMPARE(KoGamutMappingUtils::interpolateOkLch(from, to, 0.0f), from);
+    QCOMPARE(KoGamutMappingUtils::interpolateOkLch(from, to, 1.0f), to);
 }
 
 QTEST_GUILESS_MAIN(TestColorConversion)

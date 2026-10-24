@@ -32,6 +32,17 @@ QVector4D KRITAPIGMENT_EXPORT XYZToOkLab(const QVector4D &xyz);
 QVector4D KRITAPIGMENT_EXPORT OkLabToXYZ(const QVector4D &okLab);
 
 /**
+ * @brief interpolateOkLch
+ * Interpolates two Oklab colors in polar OKLCH using the shorter hue arc.
+ * Achromatic colors borrow the hue of the chromatic endpoint.
+ * @param from starting Oklab color
+ * @param to ending Oklab color
+ * @param amount interpolation amount in the range [0, 1]
+ * @return The interpolated Oklab color.
+ */
+QVector4D KRITAPIGMENT_EXPORT interpolateOkLch(const QVector4D &from, const QVector4D &to, float amount);
+
+/**
  * @brief XYZToICtCp
  * Ad-hoc implementation of ICtCp for use in filters.
  * Unlike the official YCbCr-compatible standard, this one doesn't have a 0.5 offset in the Ct and Cp channels.

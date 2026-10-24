@@ -14,6 +14,8 @@
 
 #include <QtMath>
 
+#include <cmath>
+
 float KoGamutMappingUtils::deltaE76(const QVector<float> &a, const QVector<float> &b) {
     //This is E76, E2000 implementation is too complicated and buggy.
     float dL = a[0] - b[0];
@@ -224,6 +226,52 @@ QVector4D KoGamutMappingUtils::OkLabToXYZ(const QVector4D &okLab) {
                                     powf(lmsPrime.y(), 3.0),
                                     powf(lmsPrime.z(), 3.0), 0.0);
     return xyz50To65_inv * (XYZtoOkLABLMS_inv * lms);
+}
+
+QVector4D KoGamutMappingUtils::interpolateOkLch(const QVector4D &from, const QVector4D &to, float amount)
+{
+    if (amount <= 0.0f) {
+        return from;
+    }
+    if (amount >= 1.0f) {
+        return to;
+    }
+
+    constexpr float powerlessHueEpsilon = 0.000004f;
+    constexpr float pi = 3.14159265358979323846f;
+    constexpr float twoPi = 2.0f * pi;
+
+    float fromChroma = std::hypot(from.y(), from.z());
+    float toChroma = std::hypot(to.y(), to.z());
+    float fromHue = std::atan2(from.z(), from.y());
+    float toHue = std::atan2(to.z(), to.y());
+
+    const bool fromHueIsPowerless = fromChroma <= powerlessHueEpsilon;
+    const bool toHueIsPowerless = toChroma <= powerlessHueEpsilon;
+
+    if (fromHueIsPowerless) {
+        fromChroma = 0.0f;
+        fromHue = toHueIsPowerless ? 0.0f : toHue;
+    }
+    if (toHueIsPowerless) {
+        toChroma = 0.0f;
+        toHue = fromHue;
+    }
+
+    if (toHue - fromHue > pi) {
+        fromHue += twoPi;
+    } else if (toHue - fromHue < -pi) {
+        toHue += twoPi;
+    }
+
+    const float lightness = from.x() + amount * (to.x() - from.x());
+    const float chroma = fromChroma + amount * (toChroma - fromChroma);
+    const float hue = fromHue + amount * (toHue - fromHue);
+
+    return QVector4D(lightness,
+                     chroma * std::cos(hue),
+                     chroma * std::sin(hue),
+                     from.w() + amount * (to.w() - from.w()));
 }
 
 QVector4D KoGamutMappingUtils::XYZToICtCp(const QVector4D &xyz)
