@@ -13,7 +13,6 @@
 #include <KoCompositeOp.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoGamutMappingUtils.h>
-#include <KoXyzColorSpaceTraits.h>
 
 #include "KoCompositeOpOklchUtils.h"
 #include "KoCompositeOpOver.h"

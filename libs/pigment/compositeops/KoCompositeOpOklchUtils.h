@@ -16,6 +16,7 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorSpaceTraits.h>
 #include <KoXyzColorSpaceTraits.h>
 
 template<class Traits, class PerPixelValue>
