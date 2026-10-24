@@ -77,6 +77,11 @@ public:
             return;
         }
 
+        if (!hasOverlappingPixels(params, opacity)) {
+            compositeFallback(params);
+            return;
+        }
+
         const KoColorSpace *xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
             XYZAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
 
@@ -103,7 +108,7 @@ public:
         QVector<channels_type> sourceAlphas(pixelCount);
         QByteArray blendColorRow(pixelCount * int(Traits::pixelSize), 0);
 
-        KoGamutMappingUtils::OkLch constantSourceOkLch;
+        QVector4D constantSourceOkLab;
         bool constantSourceConverted = false;
         const qint32 srcPixelIncrement = constantSource ? 0 : Traits::channels_nb;
 
@@ -133,7 +138,7 @@ public:
                         toXyz->transform(params.srcRowStart,
                                          reinterpret_cast<quint8 *>(&constantSourceXyz),
                                          1);
-                        constantSourceOkLch = KoGamutMappingUtils::OkLabToOkLch(
+                        constantSourceOkLab = normalizedSourceOkLab(
                             KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                         constantSourceConverted = true;
                     }
@@ -150,13 +155,15 @@ public:
 
                     const QVector4D destinationOkLab =
                         KoGamutMappingUtils::XYZToOkLab(toVector(dstXyz[column]));
-                    KoGamutMappingUtils::OkLch blendColor = constantSource
-                        ? constantSourceOkLch
-                        : KoGamutMappingUtils::OkLabToOkLch(
+                    QVector4D blendColor = constantSource
+                        ? constantSourceOkLab
+                        : normalizedSourceOkLab(
                             KoGamutMappingUtils::XYZToOkLab(toVector(srcXyz[column])));
-                    blendColor.lightness = destinationOkLab.x();
+                    // (L_d, C_s, h_s) is exactly (L_d, a_s, b_s), so retain
+                    // the Cartesian chromatic components and avoid a polar round trip.
+                    blendColor.setX(destinationOkLab.x());
                     dstXyz[column] = fromVector(KoGamutMappingUtils::OkLabToXYZ(
-                        KoGamutMappingUtils::OkLchToOkLab(blendColor)));
+                        blendColor));
                 }
 
                 fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
@@ -214,6 +221,37 @@ public:
     }
 
 private:
+    static bool hasOverlappingPixels(const KoCompositeOp::ParameterInfo &params, channels_type opacity)
+    {
+        const bool constantSource = params.srcRowStride == 0;
+        const qint32 srcPixelIncrement = constantSource ? 0 : Traits::channels_nb;
+        const channels_type zero = KoColorSpaceMathsTraits<channels_type>::zeroValue;
+        const quint8 *srcRow = params.srcRowStart;
+        const quint8 *dstRow = params.dstRowStart;
+        const quint8 *maskRow = params.maskRowStart;
+
+        for (int row = 0; row < params.rows; ++row) {
+            const channels_type *srcPixel = reinterpret_cast<const channels_type *>(srcRow);
+            const channels_type *dstPixel = reinterpret_cast<const channels_type *>(dstRow);
+
+            for (qint32 column = 0; column < params.cols; ++column) {
+                if (effectiveSourceAlpha(srcPixel, maskRow, column, opacity) != zero
+                    && dstPixel[Traits::alpha_pos] != zero) {
+                    return true;
+                }
+                srcPixel += srcPixelIncrement;
+                dstPixel += Traits::channels_nb;
+            }
+
+            srcRow += params.srcRowStride;
+            dstRow += params.dstRowStride;
+            if (maskRow) {
+                maskRow += params.maskRowStride;
+            }
+        }
+        return false;
+    }
+
     static channels_type effectiveSourceAlpha(const channels_type *src,
                                               const quint8 *maskRow,
                                               qint32 column,
@@ -226,6 +264,17 @@ private:
             alpha = KoColorSpaceMaths<channels_type>::multiply(alpha, opacity);
         }
         return alpha;
+    }
+
+    static QVector4D normalizedSourceOkLab(QVector4D source)
+    {
+        constexpr float powerlessHueEpsilonSquared = 0.000004f * 0.000004f;
+        const float chromaSquared = source.y() * source.y() + source.z() * source.z();
+        if (chromaSquared <= powerlessHueEpsilonSquared) {
+            source.setY(0.0f);
+            source.setZ(0.0f);
+        }
+        return source;
     }
 
     static void compositeAlphaLocked(channels_type srcAlpha,
