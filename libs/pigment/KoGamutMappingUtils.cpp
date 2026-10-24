@@ -181,7 +181,8 @@ const QMatrix4x4 XYZtoOkLABLMS {QMatrix4x4(
     0.0, 0.0, 0.0, 1.0
     )};
 
-const QMatrix4x4 XYZtoOkLABLMS_inv = XYZtoOkLABLMS.inverted();
+const QMatrix4x4 XYZD50toOkLABLMS = XYZtoOkLABLMS * xyz50To65;
+const QMatrix4x4 OkLABLMStoXYZD50 = XYZD50toOkLABLMS.inverted();
 
 const QMatrix4x4 lmsToOkLab {QMatrix4x4(
     0.2104542683093140,  0.7936177747023054, -0.0040720430116193, 0.0,
@@ -211,7 +212,7 @@ const QMatrix4x4 lmsToICtCp {QMatrix4x4(
 const QMatrix4x4 lmsToICtCp_inv = lmsToICtCp.inverted();
 
 QVector4D KoGamutMappingUtils::XYZToOkLab(const QVector4D &xyz) {
-    const QVector4D lms = XYZtoOkLABLMS * (xyz50To65 * xyz);
+    const QVector4D lms = XYZD50toOkLABLMS * xyz;
 
     const QVector4D lmsPrime = QVector4D(cbrtf(lms.x()),
                                          cbrtf(lms.y()),
@@ -222,10 +223,32 @@ QVector4D KoGamutMappingUtils::XYZToOkLab(const QVector4D &xyz) {
 
 QVector4D KoGamutMappingUtils::OkLabToXYZ(const QVector4D &okLab) {
     const QVector4D lmsPrime = lmsToOkLab_inv * okLab;
-    const QVector4D lms = QVector4D(powf(lmsPrime.x(), 3.0),
-                                    powf(lmsPrime.y(), 3.0),
-                                    powf(lmsPrime.z(), 3.0), 0.0);
-    return xyz50To65_inv * (XYZtoOkLABLMS_inv * lms);
+    const QVector4D lms = QVector4D(lmsPrime.x() * lmsPrime.x() * lmsPrime.x(),
+                                    lmsPrime.y() * lmsPrime.y() * lmsPrime.y(),
+                                    lmsPrime.z() * lmsPrime.z() * lmsPrime.z(), 0.0);
+    return OkLABLMStoXYZD50 * lms;
+}
+
+KoGamutMappingUtils::OkLch KoGamutMappingUtils::OkLabToOkLch(const QVector4D &okLab)
+{
+    constexpr float powerlessHueEpsilon = 0.000004f;
+    const float chroma = std::hypot(okLab.y(), okLab.z());
+    return {okLab.x(),
+            chroma <= powerlessHueEpsilon ? 0.0f : chroma,
+            std::atan2(okLab.z(), okLab.y()),
+            okLab.w(),
+            chroma <= powerlessHueEpsilon};
+}
+
+QVector4D KoGamutMappingUtils::OkLchToOkLab(const OkLch &okLch)
+{
+    if (okLch.hueIsPowerless) {
+        return QVector4D(okLch.lightness, 0.0f, 0.0f, okLch.alpha);
+    }
+    return QVector4D(okLch.lightness,
+                     okLch.chroma * std::cos(okLch.hue),
+                     okLch.chroma * std::sin(okLch.hue),
+                     okLch.alpha);
 }
 
 QVector4D KoGamutMappingUtils::interpolateOkLch(const QVector4D &from, const QVector4D &to, float amount)
@@ -237,24 +260,28 @@ QVector4D KoGamutMappingUtils::interpolateOkLch(const QVector4D &from, const QVe
         return to;
     }
 
-    constexpr float powerlessHueEpsilon = 0.000004f;
+    return interpolateOkLch(OkLabToOkLch(from), OkLabToOkLch(to), amount);
+}
+
+QVector4D KoGamutMappingUtils::interpolateOkLch(const OkLch &from, const OkLch &to, float amount)
+{
+    if (amount <= 0.0f) {
+        return OkLchToOkLab(from);
+    }
+    if (amount >= 1.0f) {
+        return OkLchToOkLab(to);
+    }
+
     constexpr float pi = 3.14159265358979323846f;
     constexpr float twoPi = 2.0f * pi;
 
-    float fromChroma = std::hypot(from.y(), from.z());
-    float toChroma = std::hypot(to.y(), to.z());
-    float fromHue = std::atan2(from.z(), from.y());
-    float toHue = std::atan2(to.z(), to.y());
+    float fromHue = from.hue;
+    float toHue = to.hue;
 
-    const bool fromHueIsPowerless = fromChroma <= powerlessHueEpsilon;
-    const bool toHueIsPowerless = toChroma <= powerlessHueEpsilon;
-
-    if (fromHueIsPowerless) {
-        fromChroma = 0.0f;
-        fromHue = toHueIsPowerless ? 0.0f : toHue;
+    if (from.hueIsPowerless) {
+        fromHue = to.hueIsPowerless ? 0.0f : toHue;
     }
-    if (toHueIsPowerless) {
-        toChroma = 0.0f;
+    if (to.hueIsPowerless) {
         toHue = fromHue;
     }
 
@@ -264,14 +291,14 @@ QVector4D KoGamutMappingUtils::interpolateOkLch(const QVector4D &from, const QVe
         toHue += twoPi;
     }
 
-    const float lightness = from.x() + amount * (to.x() - from.x());
-    const float chroma = fromChroma + amount * (toChroma - fromChroma);
+    const float lightness = from.lightness + amount * (to.lightness - from.lightness);
+    const float chroma = from.chroma + amount * (to.chroma - from.chroma);
     const float hue = fromHue + amount * (toHue - fromHue);
 
     return QVector4D(lightness,
                      chroma * std::cos(hue),
                      chroma * std::sin(hue),
-                     from.w() + amount * (to.w() - from.w()));
+                     from.alpha + amount * (to.alpha - from.alpha));
 }
 
 QVector4D KoGamutMappingUtils::XYZToICtCp(const QVector4D &xyz)

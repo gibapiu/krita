@@ -9,8 +9,6 @@
 #include <QScopedPointer>
 #include <QVector>
 
-#include <algorithm>
-
 #include <KoColorModelStandardIds.h>
 #include <KoColorConversionTransformation.h>
 #include <KoColorSpace.h>
@@ -67,6 +65,18 @@ public:
             return;
         }
 
+        const channels_type opacity =
+            KoColorSpaceMaths<float, channels_type>::scaleToA(params.opacity);
+        const channels_type zero = KoColorSpaceMathsTraits<channels_type>::zeroValue;
+        const channels_type unit = KoColorSpaceMathsTraits<channels_type>::unitValue;
+        const bool constantSource = params.srcRowStride == 0;
+
+        if (opacity == zero
+            || (constantSource
+                && reinterpret_cast<const channels_type *>(params.srcRowStart)[Traits::alpha_pos] == zero)) {
+            return;
+        }
+
         const KoColorSpace *xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
             XYZAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
 
@@ -90,16 +100,14 @@ public:
         }
 
         const qint32 pixelCount = params.cols;
-        QVector<KoXyzF32Traits::Pixel> srcXyz(pixelCount);
+        QVector<KoXyzF32Traits::Pixel> srcXyz(constantSource ? 0 : pixelCount);
         QVector<KoXyzF32Traits::Pixel> dstXyz(pixelCount);
         QVector<float> blendAmounts(pixelCount);
         QByteArray convertedRow(pixelCount * int(Traits::pixelSize), 0);
 
-        const channels_type opacity =
-            KoColorSpaceMaths<float, channels_type>::scaleToA(params.opacity);
-
-        KoXyzF32Traits::Pixel constantSourceXyz;
+        KoGamutMappingUtils::OkLch constantSourceOkLch;
         bool constantSourceConverted = false;
+        const qint32 srcPixelIncrement = constantSource ? 0 : Traits::channels_nb;
 
         const quint8 *srcRow = params.srcRowStart;
         quint8 *dstRow = params.dstRowStart;
@@ -107,35 +115,35 @@ public:
 
         for (int row = 0; row < params.rows; ++row) {
             const channels_type *src = reinterpret_cast<const channels_type *>(srcRow);
+            const channels_type *srcPixel = src;
             channels_type *dst = reinterpret_cast<channels_type *>(dstRow);
             bool needsColorConversion = false;
 
             for (qint32 column = 0; column < pixelCount; ++column) {
-                const channels_type *srcPixel = src + (params.srcRowStride == 0 ? 0 : column * Traits::channels_nb);
                 channels_type *dstPixel = dst + column * Traits::channels_nb;
 
                 const channels_type srcAlpha = effectiveSourceAlpha(srcPixel, maskRow, column, opacity);
                 const channels_type dstAlpha = dstPixel[Traits::alpha_pos];
-                channels_type srcBlend = KoColorSpaceMathsTraits<channels_type>::zeroValue;
+                channels_type srcBlend = zero;
 
-                if (srcAlpha != KoColorSpaceMathsTraits<channels_type>::zeroValue) {
-                    if (alphaLocked || dstAlpha == KoColorSpaceMathsTraits<channels_type>::unitValue) {
+                if (srcAlpha != zero) {
+                    if (alphaLocked || dstAlpha == unit) {
                         srcBlend = srcAlpha;
-                    } else if (dstAlpha == KoColorSpaceMathsTraits<channels_type>::zeroValue) {
+                    } else if (dstAlpha == zero) {
                         if (!allChannelFlags) {
                             for (int channel = 0; channel < Traits::channels_nb; ++channel) {
                                 if (channel != Traits::alpha_pos) {
-                                    dstPixel[channel] = KoColorSpaceMathsTraits<channels_type>::zeroValue;
+                                    dstPixel[channel] = zero;
                                 }
                             }
                         }
 
                         dstPixel[Traits::alpha_pos] = srcAlpha;
-                        srcBlend = KoColorSpaceMathsTraits<channels_type>::unitValue;
+                        srcBlend = unit;
                     } else {
                         const channels_type newAlpha = dstAlpha
                             + KoColorSpaceMaths<channels_type>::multiply(
-                                KoColorSpaceMathsTraits<channels_type>::unitValue - dstAlpha,
+                                unit - dstAlpha,
                                 srcAlpha);
                         dstPixel[Traits::alpha_pos] = newAlpha;
                         srcBlend = KoColorSpaceMaths<channels_type>::divide(srcAlpha, newAlpha);
@@ -145,17 +153,20 @@ public:
                 blendAmounts[column] =
                     KoColorSpaceMaths<channels_type, float>::scaleToA(srcBlend);
                 needsColorConversion |= blendAmounts[column] > 0.0f && blendAmounts[column] < 1.0f;
+                srcPixel += srcPixelIncrement;
             }
 
             if (needsColorConversion) {
-                if (params.srcRowStride == 0) {
+                if (constantSource) {
                     if (!constantSourceConverted) {
+                        KoXyzF32Traits::Pixel constantSourceXyz;
                         toXyz->transform(params.srcRowStart,
                                          reinterpret_cast<quint8 *>(&constantSourceXyz),
                                          1);
+                        constantSourceOkLch = KoGamutMappingUtils::OkLabToOkLch(
+                            KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                         constantSourceConverted = true;
                     }
-                    std::fill(srcXyz.begin(), srcXyz.end(), constantSourceXyz);
                 } else {
                     toXyz->transform(srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
                 }
@@ -163,14 +174,18 @@ public:
 
                 for (qint32 column = 0; column < pixelCount; ++column) {
                     const float amount = blendAmounts[column];
-                    if (amount >= 1.0f) {
-                        dstXyz[column] = srcXyz[column];
-                    } else {
-                        const QVector4D from = KoGamutMappingUtils::XYZToOkLab(toVector(dstXyz[column]));
-                        const QVector4D to = KoGamutMappingUtils::XYZToOkLab(toVector(srcXyz[column]));
-                        dstXyz[column] = fromVector(KoGamutMappingUtils::OkLabToXYZ(
-                            KoGamutMappingUtils::interpolateOkLch(from, to, amount)));
+                    if (amount <= 0.0f || amount >= 1.0f) {
+                        continue;
                     }
+
+                    const KoGamutMappingUtils::OkLch from = KoGamutMappingUtils::OkLabToOkLch(
+                        KoGamutMappingUtils::XYZToOkLab(toVector(dstXyz[column])));
+                    const KoGamutMappingUtils::OkLch to = constantSource
+                        ? constantSourceOkLch
+                        : KoGamutMappingUtils::OkLabToOkLch(
+                            KoGamutMappingUtils::XYZToOkLab(toVector(srcXyz[column])));
+                    dstXyz[column] = fromVector(KoGamutMappingUtils::OkLabToXYZ(
+                        KoGamutMappingUtils::interpolateOkLch(from, to, amount)));
                 }
 
                 fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
@@ -179,8 +194,8 @@ public:
             }
 
             const channels_type *converted = reinterpret_cast<const channels_type *>(convertedRow.constData());
+            srcPixel = src;
             for (qint32 column = 0; column < pixelCount; ++column) {
-                const channels_type *srcPixel = src + (params.srcRowStride == 0 ? 0 : column * Traits::channels_nb);
                 channels_type *dstPixel = dst + column * Traits::channels_nb;
                 const channels_type *convertedPixel = converted + column * Traits::channels_nb;
 
@@ -195,6 +210,7 @@ public:
                             : convertedPixel[channel];
                     }
                 }
+                srcPixel += srcPixelIncrement;
             }
 
             srcRow += params.srcRowStride;

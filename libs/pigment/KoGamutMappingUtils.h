@@ -32,6 +32,21 @@ QVector4D KRITAPIGMENT_EXPORT XYZToOkLab(const QVector4D &xyz);
 QVector4D KRITAPIGMENT_EXPORT OkLabToXYZ(const QVector4D &okLab);
 
 /**
+ * Polar representation of an Oklab color. Hue is expressed in radians.
+ */
+struct OkLch
+{
+    float lightness {0.0f};
+    float chroma {0.0f};
+    float hue {0.0f};
+    float alpha {0.0f};
+    bool hueIsPowerless {true};
+};
+
+OkLch KRITAPIGMENT_EXPORT OkLabToOkLch(const QVector4D &okLab);
+QVector4D KRITAPIGMENT_EXPORT OkLchToOkLab(const OkLch &okLch);
+
+/**
  * @brief interpolateOkLch
  * Interpolates two Oklab colors in polar OKLCH using the shorter hue arc.
  * Achromatic colors borrow the hue of the chromatic endpoint.
@@ -41,6 +56,10 @@ QVector4D KRITAPIGMENT_EXPORT OkLabToXYZ(const QVector4D &okLab);
  * @return The interpolated Oklab color.
  */
 QVector4D KRITAPIGMENT_EXPORT interpolateOkLch(const QVector4D &from, const QVector4D &to, float amount);
+/**
+ * Interpolates precomputed OKLCH endpoints and returns an Oklab color.
+ */
+QVector4D KRITAPIGMENT_EXPORT interpolateOkLch(const OkLch &from, const OkLch &to, float amount);
 
 /**
  * @brief XYZToICtCp

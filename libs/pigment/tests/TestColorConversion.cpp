@@ -217,6 +217,12 @@ void TestColorConversion::testOkLchInterpolation()
     QVERIFY(qAbs(midpoint.y() - 0.2f) < 1e-6f);
     QVERIFY(qAbs(midpoint.z()) < 1e-6f);
 
+    const QVector4D precomputedMidpoint = KoGamutMappingUtils::interpolateOkLch(
+        KoGamutMappingUtils::OkLabToOkLch(from),
+        KoGamutMappingUtils::OkLabToOkLch(to),
+        0.5f);
+    QVERIFY((precomputedMidpoint - midpoint).length() < 1e-6f);
+
     const QVector4D gray(0.4f, 0.0f, 0.0f, 0.0f);
     const QVector4D blue = fromLch(0.8f, 0.2f, 240.0f);
     const QVector4D grayToBlue = KoGamutMappingUtils::interpolateOkLch(gray, blue, 0.5f);
@@ -225,6 +231,11 @@ void TestColorConversion::testOkLchInterpolation()
     QVERIFY((grayToBlue - expectedGrayToBlue).length() < 1e-6f);
     QCOMPARE(KoGamutMappingUtils::interpolateOkLch(from, to, 0.0f), from);
     QCOMPARE(KoGamutMappingUtils::interpolateOkLch(from, to, 1.0f), to);
+
+    const QVector4D xyz(0.25f, 0.4f, 0.1f, 0.0f);
+    const QVector4D xyzRoundTrip = KoGamutMappingUtils::OkLabToXYZ(
+        KoGamutMappingUtils::XYZToOkLab(xyz));
+    QVERIFY((xyzRoundTrip - xyz).length() < 2e-6f);
 }
 
 QTEST_GUILESS_MAIN(TestColorConversion)
