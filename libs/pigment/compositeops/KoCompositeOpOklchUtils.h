@@ -18,12 +18,12 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoXyzColorSpaceTraits.h>
 
-template<class Traits, class AuxiliaryType>
-class KoOklchThreadDataStore
+template<class Traits, class PerPixelValue>
+class KoOklchConversionContextStore
 {
 public:
-    struct Data {
-        Data(const KoColorSpace *colorSpace, const KoColorSpace *xyzColorSpace)
+    struct ConversionContext {
+        ConversionContext(const KoColorSpace *colorSpace, const KoColorSpace *xyzColorSpace)
         {
             const auto intent = KoColorConversionTransformation::IntentRelativeColorimetric;
             const auto flags = KoColorConversionTransformation::adjustmentConversionFlags();
@@ -44,13 +44,13 @@ public:
             if (dstXyz.size() < pixelCount) {
                 dstXyz.resize(pixelCount);
             }
-            if (auxiliary.size() < pixelCount) {
-                auxiliary.resize(pixelCount);
+            if (perPixelValues.size() < pixelCount) {
+                perPixelValues.resize(pixelCount);
             }
 
             const int outputBytes = pixelCount * int(Traits::pixelSize);
-            if (output.size() < outputBytes) {
-                output.resize(outputBytes);
+            if (convertedPixels.size() < outputBytes) {
+                convertedPixels.resize(outputBytes);
             }
         }
 
@@ -58,16 +58,16 @@ public:
         QScopedPointer<KoColorConversionTransformation> fromXyz;
         QVector<KoXyzF32Traits::Pixel> srcXyz;
         QVector<KoXyzF32Traits::Pixel> dstXyz;
-        QVector<AuxiliaryType> auxiliary;
-        QByteArray output;
+        QVector<PerPixelValue> perPixelValues;
+        QByteArray convertedPixels;
     };
 
-    explicit KoOklchThreadDataStore(const KoColorSpace *colorSpace)
+    explicit KoOklchConversionContextStore(const KoColorSpace *colorSpace)
         : m_colorSpace(colorSpace)
     {
     }
 
-    Data *localData() const
+    ConversionContext *contextForCurrentThread() const
     {
         std::call_once(m_xyzColorSpaceOnce, [this]() {
             m_xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
@@ -78,17 +78,17 @@ public:
             return nullptr;
         }
 
-        if (!m_threadData.hasLocalData()) {
-            m_threadData.setLocalData(new Data(m_colorSpace, m_xyzColorSpace));
+        if (!m_threadContexts.hasLocalData()) {
+            m_threadContexts.setLocalData(new ConversionContext(m_colorSpace, m_xyzColorSpace));
         }
-        return m_threadData.localData();
+        return m_threadContexts.localData();
     }
 
 private:
     const KoColorSpace *m_colorSpace;
     mutable std::once_flag m_xyzColorSpaceOnce;
     mutable const KoColorSpace *m_xyzColorSpace {nullptr};
-    mutable QThreadStorage<Data *> m_threadData;
+    mutable QThreadStorage<ConversionContext *> m_threadContexts;
 };
 
 #endif

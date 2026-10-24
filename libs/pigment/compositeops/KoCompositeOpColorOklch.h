@@ -33,7 +33,7 @@ class KoCompositeOpColorOklch : public KoCompositeOp
 public:
     explicit KoCompositeOpColorOklch(const KoColorSpace *cs)
         : KoCompositeOp(cs, COMPOSITE_COLOR_OKLCH, KoCompositeOp::categoryOKLCH())
-        , m_threadData(cs)
+        , m_conversionContexts(cs)
     {
     }
 
@@ -80,18 +80,19 @@ public:
             return;
         }
 
-        typename ThreadDataStore::Data *data = m_threadData.localData();
-        if (!data || !data->isValid()) {
+        typename ConversionContextStore::ConversionContext *conversionContext =
+            m_conversionContexts.contextForCurrentThread();
+        if (!conversionContext || !conversionContext->isValid()) {
             compositeFallback(params);
             return;
         }
 
         const qint32 pixelCount = params.cols;
-        data->ensureCapacity(pixelCount, !constantSource);
-        QVector<KoXyzF32Traits::Pixel> &srcXyz = data->srcXyz;
-        QVector<KoXyzF32Traits::Pixel> &dstXyz = data->dstXyz;
-        QVector<channels_type> &sourceAlphas = data->auxiliary;
-        QByteArray &blendColorRow = data->output;
+        conversionContext->ensureCapacity(pixelCount, !constantSource);
+        QVector<KoXyzF32Traits::Pixel> &srcXyz = conversionContext->srcXyz;
+        QVector<KoXyzF32Traits::Pixel> &dstXyz = conversionContext->dstXyz;
+        QVector<channels_type> &sourceAlphas = conversionContext->perPixelValues;
+        QByteArray &blendColorRow = conversionContext->convertedPixels;
 
         QVector4D constantSourceOkLab;
         bool constantSourceConverted = false;
@@ -120,17 +121,19 @@ public:
                 if (constantSource) {
                     if (!constantSourceConverted) {
                         KoXyzF32Traits::Pixel constantSourceXyz;
-                        data->toXyz->transform(params.srcRowStart,
-                                               reinterpret_cast<quint8 *>(&constantSourceXyz),
-                                               1);
+                        conversionContext->toXyz->transform(params.srcRowStart,
+                                                            reinterpret_cast<quint8 *>(&constantSourceXyz),
+                                                            1);
                         constantSourceOkLab = normalizedSourceOkLab(
                             KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                         constantSourceConverted = true;
                     }
                 } else {
-                    data->toXyz->transform(srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
+                    conversionContext->toXyz->transform(
+                        srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
                 }
-                data->toXyz->transform(dstRow, reinterpret_cast<quint8 *>(dstXyz.data()), pixelCount);
+                conversionContext->toXyz->transform(
+                    dstRow, reinterpret_cast<quint8 *>(dstXyz.data()), pixelCount);
 
                 for (qint32 column = 0; column < pixelCount; ++column) {
                     if (sourceAlphas[column] == zero
@@ -151,9 +154,9 @@ public:
                         blendColor));
                 }
 
-                data->fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
-                                         reinterpret_cast<quint8 *>(blendColorRow.data()),
-                                         pixelCount);
+                conversionContext->fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
+                                                       reinterpret_cast<quint8 *>(blendColorRow.data()),
+                                                       pixelCount);
             }
 
             const channels_type *blendColors =
@@ -206,7 +209,7 @@ public:
     }
 
 private:
-    using ThreadDataStore = KoOklchThreadDataStore<Traits, channels_type>;
+    using ConversionContextStore = KoOklchConversionContextStore<Traits, channels_type>;
 
     static bool hasOverlappingPixels(const KoCompositeOp::ParameterInfo &params, channels_type opacity)
     {
@@ -330,7 +333,7 @@ private:
         }
     }
 
-    mutable ThreadDataStore m_threadData;
+    mutable ConversionContextStore m_conversionContexts;
 };
 
 #endif
