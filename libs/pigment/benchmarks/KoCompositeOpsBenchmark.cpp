@@ -7,7 +7,9 @@
 #include "KoCompositeOpsBenchmark.h"
 
 #include "../compositeops/KoCompositeOpAlphaDarken.h"
+#include "../compositeops/KoCompositeOpColorOklch.h"
 #include "../compositeops/KoCompositeOpOver.h"
+#include "../compositeops/KoCompositeOpOverOklch.h"
 #include <KoOptimizedCompositeOpFactory.h>
 
 #include <KoColorSpaceTraits.h>
@@ -76,6 +78,24 @@ void KoCompositeOpsBenchmark::cleanupTestCase()
 void KoCompositeOpsBenchmark::benchmarkCompositeOver()
 {
     KoCompositeOp *compositeOp = KoOptimizedCompositeOpFactory::createOverOp32(KoColorSpaceRegistry::instance()->rgb8());
+    QBENCHMARK{
+        COMPOSITE_BENCHMARK
+    }
+}
+
+void KoCompositeOpsBenchmark::benchmarkCompositeOverOklch()
+{
+    KoCompositeOpOverOklch<KoBgrU8Traits> op(KoColorSpaceRegistry::instance()->rgb8());
+    KoCompositeOp *compositeOp = &op;
+    QBENCHMARK{
+        COMPOSITE_BENCHMARK
+    }
+}
+
+void KoCompositeOpsBenchmark::benchmarkCompositeColorOklch()
+{
+    KoCompositeOpColorOklch<KoBgrU8Traits> op(KoColorSpaceRegistry::instance()->rgb8());
+    KoCompositeOp *compositeOp = &op;
     QBENCHMARK{
         COMPOSITE_BENCHMARK
     }
