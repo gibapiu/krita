@@ -6,19 +6,16 @@
 #define KOCOMPOSITEOPOVEROKLCH_H
 
 #include <QByteArray>
-#include <QScopedPointer>
 #include <QVector>
 
-#include <KoColorModelStandardIds.h>
-#include <KoColorConversionTransformation.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceMaths.h>
-#include <KoColorSpaceRegistry.h>
 #include <KoCompositeOp.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoGamutMappingUtils.h>
 #include <KoXyzColorSpaceTraits.h>
 
+#include "KoCompositeOpOklchUtils.h"
 #include "KoCompositeOpOver.h"
 
 /**
@@ -35,6 +32,7 @@ class KoCompositeOpOverOklch : public KoCompositeOp
 public:
     explicit KoCompositeOpOverOklch(const KoColorSpace *cs)
         : KoCompositeOp(cs, COMPOSITE_OVER_OKLCH, KoCompositeOp::categoryOKLCH())
+        , m_threadData(cs)
     {
     }
 
@@ -77,33 +75,19 @@ public:
             return;
         }
 
-        const KoColorSpace *xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
-            XYZAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
-
-        if (!xyzColorSpace) {
-            KoCompositeOpOver<Traits> fallback(colorSpace());
-            fallback.composite(params);
-            return;
-        }
-
-        const auto intent = KoColorConversionTransformation::IntentRelativeColorimetric;
-        const auto flags = KoColorConversionTransformation::adjustmentConversionFlags();
-        QScopedPointer<KoColorConversionTransformation> toXyz(
-            colorSpace()->createColorConverter(xyzColorSpace, intent, flags));
-        QScopedPointer<KoColorConversionTransformation> fromXyz(
-            xyzColorSpace->createColorConverter(colorSpace(), intent, flags));
-
-        if (!toXyz || !fromXyz) {
+        typename ThreadDataStore::Data *data = m_threadData.localData();
+        if (!data || !data->isValid()) {
             KoCompositeOpOver<Traits> fallback(colorSpace());
             fallback.composite(params);
             return;
         }
 
         const qint32 pixelCount = params.cols;
-        QVector<KoXyzF32Traits::Pixel> srcXyz(constantSource ? 0 : pixelCount);
-        QVector<KoXyzF32Traits::Pixel> dstXyz(pixelCount);
-        QVector<float> blendAmounts(pixelCount);
-        QByteArray convertedRow(pixelCount * int(Traits::pixelSize), 0);
+        data->ensureCapacity(pixelCount, !constantSource);
+        QVector<KoXyzF32Traits::Pixel> &srcXyz = data->srcXyz;
+        QVector<KoXyzF32Traits::Pixel> &dstXyz = data->dstXyz;
+        QVector<float> &blendAmounts = data->auxiliary;
+        QByteArray &convertedRow = data->output;
 
         KoGamutMappingUtils::OkLch constantSourceOkLch;
         bool constantSourceConverted = false;
@@ -160,17 +144,17 @@ public:
                 if (constantSource) {
                     if (!constantSourceConverted) {
                         KoXyzF32Traits::Pixel constantSourceXyz;
-                        toXyz->transform(params.srcRowStart,
-                                         reinterpret_cast<quint8 *>(&constantSourceXyz),
-                                         1);
+                        data->toXyz->transform(params.srcRowStart,
+                                               reinterpret_cast<quint8 *>(&constantSourceXyz),
+                                               1);
                         constantSourceOkLch = KoGamutMappingUtils::OkLabToOkLch(
                             KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                         constantSourceConverted = true;
                     }
                 } else {
-                    toXyz->transform(srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
+                    data->toXyz->transform(srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
                 }
-                toXyz->transform(dstRow, reinterpret_cast<quint8 *>(dstXyz.data()), pixelCount);
+                data->toXyz->transform(dstRow, reinterpret_cast<quint8 *>(dstXyz.data()), pixelCount);
 
                 for (qint32 column = 0; column < pixelCount; ++column) {
                     const float amount = blendAmounts[column];
@@ -188,9 +172,9 @@ public:
                         KoGamutMappingUtils::interpolateOkLch(from, to, amount)));
                 }
 
-                fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
-                                   reinterpret_cast<quint8 *>(convertedRow.data()),
-                                   pixelCount);
+                data->fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
+                                         reinterpret_cast<quint8 *>(convertedRow.data()),
+                                         pixelCount);
             }
 
             const channels_type *converted = reinterpret_cast<const channels_type *>(convertedRow.constData());
@@ -222,6 +206,8 @@ public:
     }
 
 private:
+    using ThreadDataStore = KoOklchThreadDataStore<Traits, float>;
+
     static channels_type effectiveSourceAlpha(const channels_type *src,
                                               const quint8 *maskRow,
                                               qint32 column,
@@ -246,6 +232,7 @@ private:
         return {value.x(), value.y(), value.z(), 1.0f};
     }
 
+    mutable ThreadDataStore m_threadData;
 };
 
 #endif

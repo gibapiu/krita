@@ -6,19 +6,16 @@
 #define KOCOMPOSITEOPCOLOROKLCH_H
 
 #include <QByteArray>
-#include <QScopedPointer>
 #include <QVector>
 
-#include <KoColorModelStandardIds.h>
-#include <KoColorConversionTransformation.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceMaths.h>
-#include <KoColorSpaceRegistry.h>
 #include <KoCompositeOp.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoGamutMappingUtils.h>
 #include <KoXyzColorSpaceTraits.h>
 
+#include "KoCompositeOpOklchUtils.h"
 #include "KoCompositeOpOver.h"
 
 /**
@@ -36,6 +33,7 @@ class KoCompositeOpColorOklch : public KoCompositeOp
 public:
     explicit KoCompositeOpColorOklch(const KoColorSpace *cs)
         : KoCompositeOp(cs, COMPOSITE_COLOR_OKLCH, KoCompositeOp::categoryOKLCH())
+        , m_threadData(cs)
     {
     }
 
@@ -82,31 +80,18 @@ public:
             return;
         }
 
-        const KoColorSpace *xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
-            XYZAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
-
-        if (!xyzColorSpace) {
-            compositeFallback(params);
-            return;
-        }
-
-        const auto intent = KoColorConversionTransformation::IntentRelativeColorimetric;
-        const auto flags = KoColorConversionTransformation::adjustmentConversionFlags();
-        QScopedPointer<KoColorConversionTransformation> toXyz(
-            colorSpace()->createColorConverter(xyzColorSpace, intent, flags));
-        QScopedPointer<KoColorConversionTransformation> fromXyz(
-            xyzColorSpace->createColorConverter(colorSpace(), intent, flags));
-
-        if (!toXyz || !fromXyz) {
+        typename ThreadDataStore::Data *data = m_threadData.localData();
+        if (!data || !data->isValid()) {
             compositeFallback(params);
             return;
         }
 
         const qint32 pixelCount = params.cols;
-        QVector<KoXyzF32Traits::Pixel> srcXyz(constantSource ? 0 : pixelCount);
-        QVector<KoXyzF32Traits::Pixel> dstXyz(pixelCount);
-        QVector<channels_type> sourceAlphas(pixelCount);
-        QByteArray blendColorRow(pixelCount * int(Traits::pixelSize), 0);
+        data->ensureCapacity(pixelCount, !constantSource);
+        QVector<KoXyzF32Traits::Pixel> &srcXyz = data->srcXyz;
+        QVector<KoXyzF32Traits::Pixel> &dstXyz = data->dstXyz;
+        QVector<channels_type> &sourceAlphas = data->auxiliary;
+        QByteArray &blendColorRow = data->output;
 
         QVector4D constantSourceOkLab;
         bool constantSourceConverted = false;
@@ -135,17 +120,17 @@ public:
                 if (constantSource) {
                     if (!constantSourceConverted) {
                         KoXyzF32Traits::Pixel constantSourceXyz;
-                        toXyz->transform(params.srcRowStart,
-                                         reinterpret_cast<quint8 *>(&constantSourceXyz),
-                                         1);
+                        data->toXyz->transform(params.srcRowStart,
+                                               reinterpret_cast<quint8 *>(&constantSourceXyz),
+                                               1);
                         constantSourceOkLab = normalizedSourceOkLab(
                             KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                         constantSourceConverted = true;
                     }
                 } else {
-                    toXyz->transform(srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
+                    data->toXyz->transform(srcRow, reinterpret_cast<quint8 *>(srcXyz.data()), pixelCount);
                 }
-                toXyz->transform(dstRow, reinterpret_cast<quint8 *>(dstXyz.data()), pixelCount);
+                data->toXyz->transform(dstRow, reinterpret_cast<quint8 *>(dstXyz.data()), pixelCount);
 
                 for (qint32 column = 0; column < pixelCount; ++column) {
                     if (sourceAlphas[column] == zero
@@ -166,9 +151,9 @@ public:
                         blendColor));
                 }
 
-                fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
-                                   reinterpret_cast<quint8 *>(blendColorRow.data()),
-                                   pixelCount);
+                data->fromXyz->transform(reinterpret_cast<const quint8 *>(dstXyz.constData()),
+                                         reinterpret_cast<quint8 *>(blendColorRow.data()),
+                                         pixelCount);
             }
 
             const channels_type *blendColors =
@@ -221,6 +206,8 @@ public:
     }
 
 private:
+    using ThreadDataStore = KoOklchThreadDataStore<Traits, channels_type>;
+
     static bool hasOverlappingPixels(const KoCompositeOp::ParameterInfo &params, channels_type opacity)
     {
         const bool constantSource = params.srcRowStride == 0;
@@ -342,6 +329,8 @@ private:
             normalFallback.composite(params);
         }
     }
+
+    mutable ThreadDataStore m_threadData;
 };
 
 #endif
