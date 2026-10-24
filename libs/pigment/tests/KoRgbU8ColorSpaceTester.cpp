@@ -9,15 +9,20 @@
 
 #include "KoColorModelStandardIds.h"
 
+#include <QScopedPointer>
+
 #include <simpletest.h>
 #include <DebugPigment.h>
 #include <string.h>
 
 #include "KoColor.h"
+#include "KoColorConversionTransformation.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoCompositeOp.h"
+#include "KoGamutMappingUtils.h"
 #include "KoMixColorsOp.h"
+#include "KoXyzColorSpaceTraits.h"
 #include <KoCompositeOpRegistry.h>
 #include <kistest.h>
 
@@ -259,6 +264,52 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOp()
     op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
                   nullptr, 0, 1, 1, 1.0f);
     QCOMPARE(dst.toQColor(), QColor(Qt::red));
+}
+
+void KoRgbU8ColorSpaceTester::testOklchColorCompositeOp()
+{
+    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoCompositeOp *op = cs->compositeOp(COMPOSITE_COLOR_OKLCH);
+    QVERIFY(op);
+
+    const KoColorSpace *xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
+        XYZAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
+    QVERIFY(xyzColorSpace);
+
+    QScopedPointer<KoColorConversionTransformation> toXyz(
+        cs->createColorConverter(xyzColorSpace,
+                                 KoColorConversionTransformation::IntentRelativeColorimetric,
+                                 KoColorConversionTransformation::adjustmentConversionFlags()));
+    QVERIFY(toXyz);
+
+    const auto toOkLab = [&toXyz](const KoColor &color) {
+        KoXyzF32Traits::Pixel xyz;
+        toXyz->transform(color.data(), reinterpret_cast<quint8 *>(&xyz), 1);
+        return KoGamutMappingUtils::XYZToOkLab(QVector4D(xyz.x, xyz.y, xyz.z, 0.0f));
+    };
+
+    KoColor src(cs);
+    KoColor dst(cs);
+    src.fromQColor(QColor(180, 100, 80));
+    dst.fromQColor(QColor(80, 80, 80));
+
+    const QVector4D sourceOkLab = toOkLab(src);
+    const QVector4D destinationOkLab = toOkLab(dst);
+
+    op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
+                  nullptr, 0, 1, 1, 1.0f);
+
+    const QVector4D resultOkLab = toOkLab(dst);
+    QVERIFY(qAbs(resultOkLab.x() - destinationOkLab.x()) < 0.01f);
+    QVERIFY(qAbs(resultOkLab.y() - sourceOkLab.y()) < 0.015f);
+    QVERIFY(qAbs(resultOkLab.z() - sourceOkLab.z()) < 0.015f);
+
+    const QColor translucentSource(180, 100, 80, 128);
+    src.fromQColor(translucentSource);
+    dst.fromQColor(QColor(20, 30, 40, 0));
+    op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
+                  nullptr, 0, 1, 1, 1.0f);
+    QCOMPARE(dst.toQColor(), translucentSource);
 }
 
 void KoRgbU8ColorSpaceTester::testCompositeOpsWithChannelFlags()

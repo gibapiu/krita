@@ -39,6 +39,7 @@ KoCompositeOpRegistry::KoCompositeOpRegistry()
         << KoID("hsi"       ,  i18nc("Blending mode - category HSI", "HSI"))
         << KoID("hsl"       ,  i18nc("Blending mode - category HSL", "HSL"))
         << KoID("hsv"       ,  i18nc("Blending mode - category HSV", "HSV"))
+        << KoID("oklch"     ,  i18nc("Blending mode - category OKLCH", "OKLCH"))
         << KoID("quadratic" ,  i18nc("Blending mode - category Quadratic", "Quadratic"));
 
     m_map.insert(m_categories[0], KoID(COMPOSITE_ADD             ,  i18nc("Blending mode - Addition", "Addition")));
@@ -108,7 +109,6 @@ KoCompositeOpRegistry::KoCompositeOpRegistry()
     m_map.insert(m_categories[5], KoID(COMPOSITE_NEGATION             ,  i18nc("Blending mode - Negation", "Negation")));
 
     m_map.insert(m_categories[6], koidCompositeOverStatic());
-    m_map.insert(m_categories[6], KoID(COMPOSITE_OVER_OKLCH, i18nc("Blending mode - Normal OKLCH", "Normal (OKLCH)")));
     m_map.insert(m_categories[6], KoID(COMPOSITE_BEHIND          ,  i18nc("Blending mode - Behind", "Behind")));
     m_map.insert(m_categories[6], KoID(COMPOSITE_GREATER         ,  i18nc("Blending mode - Greater", "Greater")));
     m_map.insert(m_categories[6], KoID(COMPOSITE_OVERLAY         ,  i18nc("Blending mode - Overlay", "Overlay")));
@@ -183,15 +183,18 @@ KoCompositeOpRegistry::KoCompositeOpRegistry()
     m_map.insert(m_categories[11], KoID(COMPOSITE_DEC_VALUE         ,  i18nc("Blending mode - Decrease Value HSV", "Decrease Value")));
     m_map.insert(m_categories[11], KoID(COMPOSITE_INC_VALUE         ,  i18nc("Blending mode - Increase Value HSV", "Increase Value")));
     
-    m_map.insert(m_categories[12], KoID(COMPOSITE_REFLECT          ,  i18nc("Blending mode - Reflect", "Reflect")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_GLOW             ,  i18nc("Blending mode - Glow", "Glow")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_FREEZE           ,  i18nc("Blending mode - Freeze", "Freeze")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_HEAT             ,  i18nc("Blending mode - Heat", "Heat")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_GLEAT            ,  i18nc("Blending mode - Glow-Heat", "Glow-Heat")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_HELOW            ,  i18nc("Blending mode - Heat-Glow", "Heat-Glow")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_REEZE            ,  i18nc("Blending mode - Reflect-Freeze", "Reflect-Freeze")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_FRECT            ,  i18nc("Blending mode - Freeze-Reflect", "Freeze-Reflect")));
-    m_map.insert(m_categories[12], KoID(COMPOSITE_FHYRD            ,  i18nc("Blending mode - Heat-Glow & Freeze-Reflect Hybrid", "Heat-Glow & Freeze-Reflect Hybrid")));
+    m_map.insert(m_categories[12], KoID(COMPOSITE_OVER_OKLCH, i18nc("Blending mode - Normal OKLCH", "Normal (OKLCH)")));
+    m_map.insert(m_categories[12], KoID(COMPOSITE_COLOR_OKLCH, i18nc("Blending mode - Color OKLCH", "Color (OKLCH)")));
+
+    m_map.insert(m_categories[13], KoID(COMPOSITE_REFLECT          ,  i18nc("Blending mode - Reflect", "Reflect")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_GLOW             ,  i18nc("Blending mode - Glow", "Glow")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_FREEZE           ,  i18nc("Blending mode - Freeze", "Freeze")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_HEAT             ,  i18nc("Blending mode - Heat", "Heat")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_GLEAT            ,  i18nc("Blending mode - Glow-Heat", "Glow-Heat")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_HELOW            ,  i18nc("Blending mode - Heat-Glow", "Heat-Glow")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_REEZE            ,  i18nc("Blending mode - Reflect-Freeze", "Reflect-Freeze")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_FRECT            ,  i18nc("Blending mode - Freeze-Reflect", "Freeze-Reflect")));
+    m_map.insert(m_categories[13], KoID(COMPOSITE_FHYRD            ,  i18nc("Blending mode - Heat-Glow & Freeze-Reflect Hybrid", "Heat-Glow & Freeze-Reflect Hybrid")));
 }
 
 const KoCompositeOpRegistry& KoCompositeOpRegistry::instance()

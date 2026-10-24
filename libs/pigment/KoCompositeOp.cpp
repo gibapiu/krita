@@ -38,6 +38,7 @@ QString KoCompositeOp::categoryHSY()        { return LAZY_STATIC_CATEGORY_DISPLA
 QString KoCompositeOp::categoryHSI()        { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("hsi");        }
 QString KoCompositeOp::categoryHSL()        { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("hsl");        }
 QString KoCompositeOp::categoryHSV()        { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("hsv");        }
+QString KoCompositeOp::categoryOKLCH()      { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("oklch");      }
 QString KoCompositeOp::categoryMix()        { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("mix");        }
 QString KoCompositeOp::categoryMisc()       { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("misc");       }
 QString KoCompositeOp::categoryQuadratic()  { return LAZY_STATIC_CATEGORY_DISPLAY_NAME("quadratic");  }

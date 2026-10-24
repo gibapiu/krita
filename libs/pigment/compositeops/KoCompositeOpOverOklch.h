@@ -34,7 +34,7 @@ class KoCompositeOpOverOklch : public KoCompositeOp
 
 public:
     explicit KoCompositeOpOverOklch(const KoColorSpace *cs)
-        : KoCompositeOp(cs, COMPOSITE_OVER_OKLCH, KoCompositeOp::categoryMix())
+        : KoCompositeOp(cs, COMPOSITE_OVER_OKLCH, KoCompositeOp::categoryOKLCH())
     {
     }
 

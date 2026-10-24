@@ -21,6 +21,7 @@ private Q_SLOTS:
     void testCompositeOpsWithChannelFlags();
     void testCompositeCopyDivisionByZero();
     void testOklchCompositeOp();
+    void testOklchColorCompositeOp();
 };
 
 #endif

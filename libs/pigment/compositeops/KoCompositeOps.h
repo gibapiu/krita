@@ -18,6 +18,7 @@
 #include "compositeops/KoCompositeOpGeneric.h"
 #include "compositeops/KoCompositeOpOver.h"
 #include "compositeops/KoCompositeOpOverOklch.h"
+#include "compositeops/KoCompositeOpColorOklch.h"
 #include "compositeops/KoCompositeOpCopyChannel.h"
 #include "compositeops/KoCompositeOpAlphaDarken.h"
 #include "compositeops/KoCompositeOpErase.h"
@@ -332,6 +333,7 @@ struct AddRGBOps<Traits, true>
         cs->addCompositeOp(new KoCompositeOpCopyChannel<Traits,blue_pos >(cs, COMPOSITE_COPY_BLUE , KoCompositeOp::categoryMisc()));
 
         cs->addCompositeOp(new KoCompositeOpOverOklch<Traits>(cs));
+        cs->addCompositeOp(new KoCompositeOpColorOklch<Traits>(cs));
 
         add<CFTangentNormalmap<channels_type> >(cs, COMPOSITE_TANGENT_NORMALMAP  , KoCompositeOp::categoryMisc());
         add<CFReorientedNormalMapCombine<channels_type>>(cs, COMPOSITE_COMBINE_NORMAL, KoCompositeOp::categoryMisc());

@@ -35,6 +35,7 @@ public:
     static QString categoryHSI();
     static QString categoryHSL();
     static QString categoryHSV();
+    static QString categoryOKLCH();
     static QString categoryMix();
     static QString categoryMisc();    
     static QString categoryQuadratic();
