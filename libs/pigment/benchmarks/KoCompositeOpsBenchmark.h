@@ -19,6 +19,7 @@ private Q_SLOTS:
     void cleanupTestCase();
     
     void benchmarkCompositeOver();
+    void benchmarkCompositeColor();
     void benchmarkCompositeOverOklch();
     void benchmarkCompositeColorOklch();
     void benchmarkCompositeAlphaDarkenHard();

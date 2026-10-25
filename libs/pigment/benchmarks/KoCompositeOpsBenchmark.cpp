@@ -14,6 +14,7 @@
 
 #include <KoColorSpaceTraits.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoCompositeOpRegistry.h>
 
 #include <QRandomGenerator>
 
@@ -78,6 +79,16 @@ void KoCompositeOpsBenchmark::cleanupTestCase()
 void KoCompositeOpsBenchmark::benchmarkCompositeOver()
 {
     KoCompositeOp *compositeOp = KoOptimizedCompositeOpFactory::createOverOp32(KoColorSpaceRegistry::instance()->rgb8());
+    QBENCHMARK{
+        COMPOSITE_BENCHMARK
+    }
+}
+
+void KoCompositeOpsBenchmark::benchmarkCompositeColor()
+{
+    const KoCompositeOp *compositeOp =
+        KoColorSpaceRegistry::instance()->rgb8()->compositeOp(COMPOSITE_COLOR);
+    QVERIFY(compositeOp);
     QBENCHMARK{
         COMPOSITE_BENCHMARK
     }
