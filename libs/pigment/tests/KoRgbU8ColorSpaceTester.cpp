@@ -312,6 +312,98 @@ void KoRgbU8ColorSpaceTester::testOklchColorCompositeOp()
     QCOMPARE(dst.toQColor(), translucentSource);
 }
 
+void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
+{
+    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
+    constexpr qint32 rows = 5;
+    constexpr qint32 columns = 7;
+    constexpr qint32 pixelSize = 4;
+    constexpr qint32 sourceStride = columns * pixelSize + 8;
+    constexpr qint32 destinationStride = columns * pixelSize + 12;
+    constexpr qint32 maskStride = columns + 3;
+
+    QByteArray source(sourceStride * rows, char(0x5a));
+    QByteArray initialDestination(destinationStride * rows, char(0x6b));
+    QByteArray mask(maskStride * rows, char(0));
+
+    for (qint32 row = 0; row < rows; ++row) {
+        for (qint32 column = 0; column < columns; ++column) {
+            const int index = row * columns + column;
+            quint8 *sourcePixel = reinterpret_cast<quint8 *>(source.data())
+                + row * sourceStride + column * pixelSize;
+            quint8 *destinationPixel = reinterpret_cast<quint8 *>(initialDestination.data())
+                + row * destinationStride + column * pixelSize;
+
+            sourcePixel[0] = quint8(19 * index + 23);
+            sourcePixel[1] = quint8(43 * index + 71);
+            sourcePixel[2] = quint8(67 * index + 11);
+            sourcePixel[3] = index % 6 == 0 ? 0 : (index % 5 == 0 ? 255 : quint8(41 + 5 * index));
+
+            destinationPixel[0] = quint8(29 * index + 101);
+            destinationPixel[1] = quint8(53 * index + 17);
+            destinationPixel[2] = quint8(31 * index + 197);
+            destinationPixel[3] = index % 7 == 0 ? 0 : (index % 4 == 0 ? 255 : quint8(53 + 4 * index));
+
+            reinterpret_cast<quint8 *>(mask.data())[row * maskStride + column] =
+                index % 5 == 0 ? 0 : (index % 3 == 0 ? 255 : quint8(37 + 6 * index));
+        }
+    }
+
+    QBitArray partialChannels(pixelSize, true);
+    partialChannels.setBit(1, false);
+    QBitArray alphaLockedChannels(pixelSize, true);
+    alphaLockedChannels.setBit(ALPHA_CHANNEL, false);
+
+    const QList<QString> operationIds {COMPOSITE_OVER_OKLCH, COMPOSITE_COLOR_OKLCH};
+    const QList<QBitArray> channelSelections {
+        QBitArray(),
+        partialChannels,
+        alphaLockedChannels,
+    };
+
+    for (const QString &operationId : operationIds) {
+        const KoCompositeOp *op = cs->compositeOp(operationId);
+        QVERIFY2(op, qPrintable(operationId));
+
+        for (const QBitArray &channelFlags : channelSelections) {
+            for (const bool constantSource : {false, true}) {
+                QByteArray batchedDestination = initialDestination;
+                QByteArray pixelwiseDestination = initialDestination;
+
+                KoCompositeOp::ParameterInfo params;
+                params.dstRowStart = reinterpret_cast<quint8 *>(batchedDestination.data());
+                params.dstRowStride = destinationStride;
+                params.srcRowStart = reinterpret_cast<const quint8 *>(source.constData());
+                params.srcRowStride = constantSource ? 0 : sourceStride;
+                params.maskRowStart = reinterpret_cast<const quint8 *>(mask.constData());
+                params.maskRowStride = maskStride;
+                params.rows = rows;
+                params.cols = columns;
+                params.opacity = 0.73f;
+                params.flow = 1.0f;
+                params.channelFlags = channelFlags;
+                op->composite(params);
+
+                params.rows = 1;
+                params.cols = 1;
+                for (qint32 row = 0; row < rows; ++row) {
+                    for (qint32 column = 0; column < columns; ++column) {
+                        params.dstRowStart = reinterpret_cast<quint8 *>(pixelwiseDestination.data())
+                            + row * destinationStride + column * pixelSize;
+                        params.srcRowStart = reinterpret_cast<const quint8 *>(source.constData())
+                            + (constantSource ? 0 : row * sourceStride + column * pixelSize);
+                        params.maskRowStart = reinterpret_cast<const quint8 *>(mask.constData())
+                            + row * maskStride + column;
+                        op->composite(params);
+                    }
+                }
+
+                QCOMPARE(batchedDestination, pixelwiseDestination);
+            }
+        }
+    }
+}
+
 void KoRgbU8ColorSpaceTester::testCompositeOpsWithChannelFlags()
 {
     const KoColorSpace* cs = KoColorSpaceRegistry::instance()->rgb8();

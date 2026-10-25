@@ -22,6 +22,7 @@ private Q_SLOTS:
     void testCompositeCopyDivisionByZero();
     void testOklchCompositeOp();
     void testOklchColorCompositeOp();
+    void testOklchCompositeOpBatches();
 };
 
 #endif

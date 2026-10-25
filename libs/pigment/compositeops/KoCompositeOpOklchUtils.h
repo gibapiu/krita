@@ -10,7 +10,9 @@
 #include <QThreadStorage>
 #include <QVector>
 
+#include <cstring>
 #include <mutex>
+#include <utility>
 
 #include <KoColorConversionTransformation.h>
 #include <KoColorModelStandardIds.h>
@@ -23,6 +25,15 @@ template<class Traits, class PerPixelValue>
 class KoOklchConversionContextStore
 {
 public:
+    static constexpr qint32 MaxBatchPixels = 4096;
+
+    struct ActiveSpan {
+        qint32 row;
+        qint32 column;
+        qint32 length;
+        qint32 packedOffset;
+    };
+
     struct ConversionContext {
         ConversionContext(const KoColorSpace *colorSpace, const KoColorSpace *xyzColorSpace)
         {
@@ -37,21 +48,59 @@ public:
             return toXyz && fromXyz;
         }
 
-        void ensureCapacity(qint32 pixelCount, bool needsSourceBuffer)
+        void beginBatch(qint32 pixelCapacity, bool needsSourceBuffer)
         {
-            if (needsSourceBuffer && srcXyz.size() < pixelCount) {
-                srcXyz.resize(pixelCount);
+            if (needsSourceBuffer && srcXyz.size() < pixelCapacity) {
+                srcXyz.resize(pixelCapacity);
             }
-            if (dstXyz.size() < pixelCount) {
-                dstXyz.resize(pixelCount);
+            if (dstXyz.size() < pixelCapacity) {
+                dstXyz.resize(pixelCapacity);
             }
-            if (perPixelValues.size() < pixelCount) {
-                perPixelValues.resize(pixelCount);
+            if (perPixelValues.size() < pixelCapacity) {
+                perPixelValues.resize(pixelCapacity);
             }
 
-            const int outputBytes = pixelCount * int(Traits::pixelSize);
-            if (convertedPixels.size() < outputBytes) {
-                convertedPixels.resize(outputBytes);
+            const int nativeBytes = pixelCapacity * int(Traits::pixelSize);
+            if (packedPixels.size() < nativeBytes) {
+                packedPixels.resize(nativeBytes);
+            }
+            if (convertedPixels.size() < nativeBytes) {
+                convertedPixels.resize(nativeBytes);
+            }
+            if (activeSpans.capacity() < pixelCapacity) {
+                activeSpans.reserve(pixelCapacity);
+            }
+
+            activeSpans.clear();
+            activePixelCount = 0;
+        }
+
+        void addActivePixel(qint32 row, qint32 column, PerPixelValue value)
+        {
+            if (!activeSpans.isEmpty()) {
+                ActiveSpan &lastSpan = activeSpans.last();
+                if (lastSpan.row == row && lastSpan.column + lastSpan.length == column) {
+                    ++lastSpan.length;
+                } else {
+                    activeSpans.append({row, column, 1, activePixelCount});
+                }
+            } else {
+                activeSpans.append({row, column, 1, activePixelCount});
+            }
+
+            perPixelValues[activePixelCount] = value;
+            ++activePixelCount;
+        }
+
+        void packPixels(const quint8 *rowStart, qint32 rowStride)
+        {
+            for (const ActiveSpan &span : std::as_const(activeSpans)) {
+                const quint8 *source = rowStart
+                    + span.row * rowStride
+                    + span.column * Traits::pixelSize;
+                quint8 *destination = reinterpret_cast<quint8 *>(packedPixels.data())
+                    + span.packedOffset * Traits::pixelSize;
+                std::memcpy(destination, source, span.length * Traits::pixelSize);
             }
         }
 
@@ -60,7 +109,10 @@ public:
         QVector<KoXyzF32Traits::Pixel> srcXyz;
         QVector<KoXyzF32Traits::Pixel> dstXyz;
         QVector<PerPixelValue> perPixelValues;
+        QByteArray packedPixels;
         QByteArray convertedPixels;
+        QVector<ActiveSpan> activeSpans;
+        qint32 activePixelCount {0};
     };
 
     explicit KoOklchConversionContextStore(const KoColorSpace *colorSpace)
