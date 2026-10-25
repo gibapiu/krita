@@ -18,6 +18,8 @@
 
 #include <QRandomGenerator>
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #include <simpletest.h>
@@ -33,10 +35,12 @@ const qreal OPACITY_HALF = 0.5;
 const int TILES_IN_WIDTH = IMG_WIDTH / TILE_WIDTH;
 const int TILES_IN_HEIGHT = IMG_HEIGHT / TILE_HEIGHT;
 
-enum CompositeScenario {
-    OpaqueDestination,
-    SparseMask,
-    ConstantSource,
+enum MaskPattern {
+    RandomMask,
+    OpaqueMask,
+    ZeroMask,
+    DistributedActivePixels,
+    ClusteredActivePixels,
 };
 
 void KoCompositeOpsBenchmark::initTestCase()
@@ -126,66 +130,183 @@ void KoCompositeOpsBenchmark::benchmarkCompositeAlphaDarkenCreamy()
     }
 }
 
-void KoCompositeOpsBenchmark::benchmarkCompositeScenarios_data()
+static void addOklchWorkloadColumns()
 {
     QTest::addColumn<QString>("compositeId");
-    QTest::addColumn<int>("scenario");
+    QTest::addColumn<int>("maskPattern");
     QTest::addColumn<int>("activePixelPeriod");
-
-    QTest::newRow("opaque-normal") << COMPOSITE_OVER << int(OpaqueDestination) << 0;
-    QTest::newRow("opaque-normal-oklch") << COMPOSITE_OVER_OKLCH << int(OpaqueDestination) << 0;
-    QTest::newRow("opaque-color") << COMPOSITE_COLOR << int(OpaqueDestination) << 0;
-    QTest::newRow("opaque-color-oklch") << COMPOSITE_COLOR_OKLCH << int(OpaqueDestination) << 0;
-
-    QTest::newRow("sparse01-normal") << COMPOSITE_OVER << int(SparseMask) << 100;
-    QTest::newRow("sparse01-normal-oklch") << COMPOSITE_OVER_OKLCH << int(SparseMask) << 100;
-    QTest::newRow("sparse01-color") << COMPOSITE_COLOR << int(SparseMask) << 100;
-    QTest::newRow("sparse01-color-oklch") << COMPOSITE_COLOR_OKLCH << int(SparseMask) << 100;
-
-    QTest::newRow("sparse10-normal") << COMPOSITE_OVER << int(SparseMask) << 10;
-    QTest::newRow("sparse10-normal-oklch") << COMPOSITE_OVER_OKLCH << int(SparseMask) << 10;
-    QTest::newRow("sparse10-color") << COMPOSITE_COLOR << int(SparseMask) << 10;
-    QTest::newRow("sparse10-color-oklch") << COMPOSITE_COLOR_OKLCH << int(SparseMask) << 10;
-
-    QTest::newRow("sparse25-normal") << COMPOSITE_OVER << int(SparseMask) << 4;
-    QTest::newRow("sparse25-normal-oklch") << COMPOSITE_OVER_OKLCH << int(SparseMask) << 4;
-    QTest::newRow("sparse25-color") << COMPOSITE_COLOR << int(SparseMask) << 4;
-    QTest::newRow("sparse25-color-oklch") << COMPOSITE_COLOR_OKLCH << int(SparseMask) << 4;
-
-    QTest::newRow("constant-normal") << COMPOSITE_OVER << int(ConstantSource) << 0;
-    QTest::newRow("constant-normal-oklch") << COMPOSITE_OVER_OKLCH << int(ConstantSource) << 0;
-    QTest::newRow("constant-color") << COMPOSITE_COLOR << int(ConstantSource) << 0;
-    QTest::newRow("constant-color-oklch") << COMPOSITE_COLOR_OKLCH << int(ConstantSource) << 0;
+    QTest::addColumn<bool>("opaqueDestination");
+    QTest::addColumn<bool>("constantSource");
 }
 
-void KoCompositeOpsBenchmark::benchmarkCompositeScenarios()
+void KoCompositeOpsBenchmark::benchmarkNormalOklchWorkloads_data()
+{
+    addOklchWorkloadColumns();
+
+    QTest::newRow("random-normal")
+        << COMPOSITE_OVER << int(RandomMask) << 0 << false << false;
+    QTest::newRow("random-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(RandomMask) << 0 << false << false;
+
+    QTest::newRow("opaque-mask-normal")
+        << COMPOSITE_OVER << int(OpaqueMask) << 0 << false << false;
+    QTest::newRow("opaque-mask-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(OpaqueMask) << 0 << false << false;
+
+    QTest::newRow("zero-mask-normal")
+        << COMPOSITE_OVER << int(ZeroMask) << 0 << false << false;
+    QTest::newRow("zero-mask-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(ZeroMask) << 0 << false << false;
+
+    QTest::newRow("distributed01-normal")
+        << COMPOSITE_OVER << int(DistributedActivePixels) << 100 << false << false;
+    QTest::newRow("distributed01-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(DistributedActivePixels) << 100 << false << false;
+
+    QTest::newRow("clustered01-normal")
+        << COMPOSITE_OVER << int(ClusteredActivePixels) << 100 << false << false;
+    QTest::newRow("clustered01-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(ClusteredActivePixels) << 100 << false << false;
+
+    QTest::newRow("distributed10-normal")
+        << COMPOSITE_OVER << int(DistributedActivePixels) << 10 << false << false;
+    QTest::newRow("distributed10-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(DistributedActivePixels) << 10 << false << false;
+
+    QTest::newRow("distributed25-normal")
+        << COMPOSITE_OVER << int(DistributedActivePixels) << 4 << false << false;
+    QTest::newRow("distributed25-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(DistributedActivePixels) << 4 << false << false;
+
+    QTest::newRow("opaque-destination-normal")
+        << COMPOSITE_OVER << int(RandomMask) << 0 << true << false;
+    QTest::newRow("opaque-destination-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(RandomMask) << 0 << true << false;
+
+    QTest::newRow("constant-source-normal")
+        << COMPOSITE_OVER << int(RandomMask) << 0 << false << true;
+    QTest::newRow("constant-source-normal-oklch")
+        << COMPOSITE_OVER_OKLCH << int(RandomMask) << 0 << false << true;
+}
+
+void KoCompositeOpsBenchmark::benchmarkNormalOklchWorkloads()
+{
+    benchmarkCompositeWorkload();
+}
+
+void KoCompositeOpsBenchmark::benchmarkColorOklchWorkloads_data()
+{
+    addOklchWorkloadColumns();
+
+    QTest::newRow("random-color")
+        << COMPOSITE_COLOR << int(RandomMask) << 0 << false << false;
+    QTest::newRow("random-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(RandomMask) << 0 << false << false;
+
+    QTest::newRow("opaque-mask-color")
+        << COMPOSITE_COLOR << int(OpaqueMask) << 0 << false << false;
+    QTest::newRow("opaque-mask-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(OpaqueMask) << 0 << false << false;
+
+    QTest::newRow("zero-mask-color")
+        << COMPOSITE_COLOR << int(ZeroMask) << 0 << false << false;
+    QTest::newRow("zero-mask-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(ZeroMask) << 0 << false << false;
+
+    QTest::newRow("distributed01-color")
+        << COMPOSITE_COLOR << int(DistributedActivePixels) << 100 << false << false;
+    QTest::newRow("distributed01-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(DistributedActivePixels) << 100 << false << false;
+
+    QTest::newRow("clustered01-color")
+        << COMPOSITE_COLOR << int(ClusteredActivePixels) << 100 << false << false;
+    QTest::newRow("clustered01-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(ClusteredActivePixels) << 100 << false << false;
+
+    QTest::newRow("distributed10-color")
+        << COMPOSITE_COLOR << int(DistributedActivePixels) << 10 << false << false;
+    QTest::newRow("distributed10-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(DistributedActivePixels) << 10 << false << false;
+
+    QTest::newRow("distributed25-color")
+        << COMPOSITE_COLOR << int(DistributedActivePixels) << 4 << false << false;
+    QTest::newRow("distributed25-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(DistributedActivePixels) << 4 << false << false;
+
+    QTest::newRow("opaque-destination-color")
+        << COMPOSITE_COLOR << int(RandomMask) << 0 << true << false;
+    QTest::newRow("opaque-destination-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(RandomMask) << 0 << true << false;
+
+    QTest::newRow("constant-source-color")
+        << COMPOSITE_COLOR << int(RandomMask) << 0 << false << true;
+    QTest::newRow("constant-source-color-oklch")
+        << COMPOSITE_COLOR_OKLCH << int(RandomMask) << 0 << false << true;
+}
+
+void KoCompositeOpsBenchmark::benchmarkColorOklchWorkloads()
+{
+    benchmarkCompositeWorkload();
+}
+
+void KoCompositeOpsBenchmark::benchmarkCompositeWorkload()
 {
     QFETCH(QString, compositeId);
-    QFETCH(int, scenario);
+    QFETCH(int, maskPattern);
     QFETCH(int, activePixelPeriod);
+    QFETCH(bool, opaqueDestination);
+    QFETCH(bool, constantSource);
 
-    const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->rgb8();
-    const KoCompositeOp *compositeOp = colorSpace->compositeOp(compositeId);
+    prepareCompositeWorkload(
+        maskPattern, activePixelPeriod, opaqueDestination, constantSource);
+
+    const KoCompositeOp *compositeOp =
+        KoColorSpaceRegistry::instance()->rgb8()->compositeOp(compositeId);
     QVERIFY(compositeOp);
 
-    if (scenario == OpaqueDestination) {
-        for (int pixel = 0; pixel < IMG_WIDTH * IMG_HEIGHT; ++pixel) {
-            m_dstBuffer[pixel * KoBgrU8Traits::channels_nb + KoBgrU8Traits::alpha_pos] =
-                KoColorSpaceMathsTraits<quint8>::unitValue;
-        }
-    } else if (scenario == SparseMask) {
-        const int maskSize = IMG_WIDTH * IMG_HEIGHT;
-        std::memset(m_mskBuffer, 0, maskSize);
-        for (int pixel = 0; pixel < maskSize; pixel += activePixelPeriod) {
-            m_mskBuffer[pixel] = KoColorSpaceMathsTraits<quint8>::unitValue;
-        }
-    } else if (scenario == ConstantSource) {
-        m_srcBuffer[KoBgrU8Traits::alpha_pos] = KoColorSpaceMathsTraits<quint8>::unitValue;
-    }
-
-    const bool constantSource = scenario == ConstantSource;
     QBENCHMARK{
         compositeImage(compositeOp, constantSource);
+    }
+}
+
+void KoCompositeOpsBenchmark::prepareCompositeWorkload(int maskPattern,
+                                                       int activePixelPeriod,
+                                                       bool opaqueDestination,
+                                                       bool constantSource)
+{
+    const int pixelCount = IMG_WIDTH * IMG_HEIGHT;
+    const quint8 opaque = KoColorSpaceMathsTraits<quint8>::unitValue;
+
+    if (maskPattern == OpaqueMask) {
+        std::memset(m_mskBuffer, opaque, pixelCount);
+    } else if (maskPattern == ZeroMask) {
+        std::memset(m_mskBuffer, 0, pixelCount);
+    } else if (maskPattern == DistributedActivePixels) {
+        std::memset(m_mskBuffer, 0, pixelCount);
+        for (int pixel = 0; pixel < pixelCount; pixel += activePixelPeriod) {
+            m_mskBuffer[pixel] = opaque;
+        }
+    } else if (maskPattern == ClusteredActivePixels) {
+        std::memset(m_mskBuffer, 0, pixelCount);
+        const int activePixelCount = pixelCount / activePixelPeriod;
+        const int clusterWidth = int(std::ceil(std::sqrt(double(activePixelCount))));
+        for (int row = 0, remainingPixels = activePixelCount;
+             remainingPixels > 0;
+             ++row) {
+            const int activeColumns = std::min(clusterWidth, remainingPixels);
+            std::memset(m_mskBuffer + row * IMG_WIDTH, opaque, activeColumns);
+            remainingPixels -= activeColumns;
+        }
+    }
+
+    if (opaqueDestination) {
+        for (int pixel = 0; pixel < pixelCount; ++pixel) {
+            m_dstBuffer[pixel * KoBgrU8Traits::channels_nb + KoBgrU8Traits::alpha_pos] = opaque;
+        }
+    }
+
+    if (constantSource) {
+        m_srcBuffer[KoBgrU8Traits::alpha_pos] = opaque;
     }
 }
 

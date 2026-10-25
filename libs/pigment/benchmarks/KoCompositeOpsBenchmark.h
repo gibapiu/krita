@@ -26,11 +26,18 @@ private Q_SLOTS:
     void benchmarkCompositeColorOklch();
     void benchmarkCompositeAlphaDarkenHard();
     void benchmarkCompositeAlphaDarkenCreamy();
-    void benchmarkCompositeScenarios_data();
-    void benchmarkCompositeScenarios();
+    void benchmarkNormalOklchWorkloads_data();
+    void benchmarkNormalOklchWorkloads();
+    void benchmarkColorOklchWorkloads_data();
+    void benchmarkColorOklchWorkloads();
 
 private:
     void compositeImage(const KoCompositeOp *compositeOp, bool constantSource);
+    void benchmarkCompositeWorkload();
+    void prepareCompositeWorkload(int maskPattern,
+                                  int activePixelPeriod,
+                                  bool opaqueDestination,
+                                  bool constantSource);
 
     quint8 * m_dstBuffer;
     quint8 * m_srcBuffer;
