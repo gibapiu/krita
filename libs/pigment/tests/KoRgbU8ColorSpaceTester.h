@@ -23,6 +23,7 @@ private Q_SLOTS:
     void testOklchCompositeOp();
     void testOklchColorCompositeOp();
     void testOklchCompositeOpBatches();
+    void testOklchSrgbFastPath();
 };
 
 #endif

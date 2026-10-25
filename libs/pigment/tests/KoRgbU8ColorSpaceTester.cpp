@@ -404,6 +404,87 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
     }
 }
 
+void KoRgbU8ColorSpaceTester::testOklchSrgbFastPath()
+{
+    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoCompositeOp *op = cs->compositeOp(COMPOSITE_OVER_OKLCH);
+    QVERIFY(op);
+    QCOMPARE(cs->profile()->name(), QStringLiteral("sRGB-elle-V2-srgbtrc.icc"));
+    QCOMPARE(cs->profile()->getColorPrimaries(), PRIMARIES_ITU_R_BT_709_5);
+    QCOMPARE(cs->profile()->getTransferCharacteristics(), TRC_IEC_61966_2_1);
+
+    const KoColorSpace *xyzColorSpace = KoColorSpaceRegistry::instance()->colorSpace(
+        XYZAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
+    QVERIFY(xyzColorSpace);
+
+    const auto intent = KoColorConversionTransformation::IntentRelativeColorimetric;
+    const auto flags = KoColorConversionTransformation::adjustmentConversionFlags();
+    QScopedPointer<KoColorConversionTransformation> toXyz(
+        cs->createColorConverter(xyzColorSpace, intent, flags));
+    QScopedPointer<KoColorConversionTransformation> fromXyz(
+        xyzColorSpace->createColorConverter(cs, intent, flags));
+    QVERIFY(toXyz);
+    QVERIFY(fromXyz);
+
+    const QList<QColor> colors {
+        QColor(0, 0, 0),
+        QColor(255, 255, 255),
+        QColor(255, 0, 0),
+        QColor(0, 255, 0),
+        QColor(0, 0, 255),
+        QColor(127, 127, 127),
+        QColor(31, 113, 227),
+        QColor(219, 83, 146),
+    };
+    const QList<float> opacities {0.17f, 0.5f, 0.83f};
+
+    for (const QColor &sourceColor : colors) {
+        for (const QColor &destinationColor : colors) {
+            for (const float opacity : opacities) {
+                KoColor source(sourceColor, cs);
+                KoColor actual(destinationColor, cs);
+                KoColor expected(destinationColor, cs);
+
+                op->composite(actual.data(), cs->pixelSize(), source.data(), cs->pixelSize(),
+                              nullptr, 0, 1, 1, opacity);
+
+                KoXyzF32Traits::Pixel sourceXyz;
+                KoXyzF32Traits::Pixel destinationXyz;
+                toXyz->transform(source.data(), reinterpret_cast<quint8 *>(&sourceXyz), 1);
+                toXyz->transform(expected.data(), reinterpret_cast<quint8 *>(&destinationXyz), 1);
+
+                const auto toVector = [](const KoXyzF32Traits::Pixel &pixel) {
+                    return QVector4D(pixel.x, pixel.y, pixel.z, 0.0f);
+                };
+                const KoGamutMappingUtils::OkLch sourceOkLch = KoGamutMappingUtils::OkLabToOkLch(
+                    KoGamutMappingUtils::XYZToOkLab(toVector(sourceXyz)));
+                const KoGamutMappingUtils::OkLch destinationOkLch = KoGamutMappingUtils::OkLabToOkLch(
+                    KoGamutMappingUtils::XYZToOkLab(toVector(destinationXyz)));
+                const quint8 integerOpacity = KoColorSpaceMaths<float, quint8>::scaleToA(opacity);
+                const QVector4D resultOkLab = KoGamutMappingUtils::interpolateOkLch(
+                    destinationOkLch,
+                    sourceOkLch,
+                    KoColorSpaceMaths<quint8, float>::scaleToA(integerOpacity));
+                const QVector4D resultXyz = KoGamutMappingUtils::OkLabToXYZ(resultOkLab);
+                const KoXyzF32Traits::Pixel referenceXyz {
+                    resultXyz.x(), resultXyz.y(), resultXyz.z(), 1.0f};
+                fromXyz->transform(reinterpret_cast<const quint8 *>(&referenceXyz), expected.data(), 1);
+
+                for (int channel = 0; channel < ALPHA_CHANNEL; ++channel) {
+                    const int difference = qAbs(int(actual.data()[channel]) - int(expected.data()[channel]));
+                    QVERIFY2(difference <= 2,
+                             qPrintable(QStringLiteral("%1 -> %2 at %3, channel %4 differs by %5")
+                                            .arg(destinationColor.name(), sourceColor.name())
+                                            .arg(opacity)
+                                            .arg(channel)
+                                            .arg(difference)));
+                }
+                QCOMPARE(actual.data()[ALPHA_CHANNEL], expected.data()[ALPHA_CHANNEL]);
+            }
+        }
+    }
+}
+
 void KoRgbU8ColorSpaceTester::testCompositeOpsWithChannelFlags()
 {
     const KoColorSpace* cs = KoColorSpaceRegistry::instance()->rgb8();

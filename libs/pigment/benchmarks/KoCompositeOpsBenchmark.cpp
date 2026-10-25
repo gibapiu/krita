@@ -132,6 +132,8 @@ void KoCompositeOpsBenchmark::benchmarkCompositeScenarios_data()
     QTest::addColumn<int>("scenario");
     QTest::addColumn<int>("activePixelPeriod");
 
+    QTest::newRow("opaque-normal") << COMPOSITE_OVER << int(OpaqueDestination) << 0;
+    QTest::newRow("opaque-normal-oklch") << COMPOSITE_OVER_OKLCH << int(OpaqueDestination) << 0;
     QTest::newRow("opaque-color") << COMPOSITE_COLOR << int(OpaqueDestination) << 0;
     QTest::newRow("opaque-color-oklch") << COMPOSITE_COLOR_OKLCH << int(OpaqueDestination) << 0;
 
