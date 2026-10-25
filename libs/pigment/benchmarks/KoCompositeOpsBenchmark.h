@@ -9,6 +9,8 @@
 
 #include <QObject>
 
+class KoCompositeOp;
+
 class KoCompositeOpsBenchmark : public QObject
 {
     Q_OBJECT
@@ -24,8 +26,12 @@ private Q_SLOTS:
     void benchmarkCompositeColorOklch();
     void benchmarkCompositeAlphaDarkenHard();
     void benchmarkCompositeAlphaDarkenCreamy();
+    void benchmarkCompositeScenarios_data();
+    void benchmarkCompositeScenarios();
 
 private:
+    void compositeImage(const KoCompositeOp *compositeOp, bool constantSource);
+
     quint8 * m_dstBuffer;
     quint8 * m_srcBuffer;
     quint8 * m_mskBuffer;
