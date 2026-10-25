@@ -19,11 +19,14 @@
 #include "KoColor.h"
 #include "KoColorConversionTransformation.h"
 #include "KoColorSpace.h"
+#include "KoColorSpaceTraits.h"
+#include "KoBgrColorSpaceTraits.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoCompositeOp.h"
 #include "KoGamutMappingUtils.h"
 #include "KoMixColorsOp.h"
 #include "KoXyzColorSpaceTraits.h"
+#include "../compositeops/KoCompositeOpColorOklch.h"
 #include <KoCompositeOpRegistry.h>
 #include <kistest.h>
 
@@ -308,9 +311,28 @@ void KoRgbU8ColorSpaceTester::testOklchColorCompositeOp()
     const QColor translucentSource(180, 100, 80, 128);
     src.fromQColor(translucentSource);
     dst.fromQColor(QColor(20, 30, 40, 0));
+
+    QCOMPARE(dst.data()[KoBgrU8Traits::alpha_pos], quint8(0));
+    QVERIFY(src.data()[KoBgrU8Traits::alpha_pos] > 0);
+
+    KoColor directDestination(dst);
+    KoCompositeOpColorOklch<KoBgrU8Traits> directOp(cs);
+    directOp.composite(directDestination.data(),
+                       cs->pixelSize(),
+                       src.data(),
+                       cs->pixelSize(),
+                       nullptr,
+                       0,
+                       1,
+                       1,
+                       1.0f);
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(directDestination.data()), cs->pixelSize()),
+             QByteArray(reinterpret_cast<const char *>(src.data()), cs->pixelSize()));
+
     op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
                   nullptr, 0, 1, 1, 1.0f);
-    QCOMPARE(memcmp(dst.data(), src.data(), cs->pixelSize()), 0);
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(dst.data()), cs->pixelSize()),
+             QByteArray(reinterpret_cast<const char *>(src.data()), cs->pixelSize()));
 }
 
 void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
