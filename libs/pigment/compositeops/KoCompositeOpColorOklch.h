@@ -66,6 +66,7 @@ public:
         const channels_type opacity =
             KoColorSpaceMaths<float, channels_type>::scaleToA(params.opacity);
         const channels_type zero = KoColorSpaceMathsTraits<channels_type>::zeroValue;
+        const channels_type unit = KoColorSpaceMathsTraits<channels_type>::unitValue;
         const bool constantSource = params.srcRowStride == 0;
 
         if (opacity == zero
@@ -184,14 +185,24 @@ public:
                         copySourceColor(srcPixel, srcAlpha, dstPixel, allChannelFlags, params.channelFlags);
                     } else {
                         const channels_type newAlpha = Arithmetic::unionShapeOpacity(srcAlpha, dstAlpha);
-                        compositeColor(srcPixel,
-                                       srcAlpha,
-                                       dstPixel,
-                                       dstAlpha,
-                                       newAlpha,
-                                       blendPixel,
-                                       allChannelFlags,
-                                       params.channelFlags);
+                        if (newAlpha == unit) {
+                            compositeFullAlphaResult(srcPixel,
+                                                     srcAlpha,
+                                                     dstPixel,
+                                                     dstAlpha,
+                                                     blendPixel,
+                                                     allChannelFlags,
+                                                     params.channelFlags);
+                        } else {
+                            compositeColor(srcPixel,
+                                           srcAlpha,
+                                           dstPixel,
+                                           dstAlpha,
+                                           newAlpha,
+                                           blendPixel,
+                                           allChannelFlags,
+                                           params.channelFlags);
+                        }
                         dstPixel[Traits::alpha_pos] = newAlpha;
                     }
                 }
@@ -293,6 +304,22 @@ private:
                 dst[channel] = Arithmetic::div(
                     Arithmetic::blend(src[channel], srcAlpha, dst[channel], dstAlpha, blend[channel]),
                     newAlpha);
+            }
+        }
+    }
+
+    static void compositeFullAlphaResult(const channels_type *src,
+                                         channels_type srcAlpha,
+                                         channels_type *dst,
+                                         channels_type dstAlpha,
+                                         const channels_type *blend,
+                                         bool allChannelFlags,
+                                         const QBitArray &channelFlags)
+    {
+        for (int channel = 0; channel < Traits::channels_nb; ++channel) {
+            if (channel != Traits::alpha_pos && (allChannelFlags || channelFlags.testBit(channel))) {
+                dst[channel] = Arithmetic::blend(
+                    src[channel], srcAlpha, dst[channel], dstAlpha, blend[channel]);
             }
         }
     }
