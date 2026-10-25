@@ -10,6 +10,7 @@
 #include "KoColorModelStandardIds.h"
 
 #include <QScopedPointer>
+#include <QStringList>
 
 #include <simpletest.h>
 #include <DebugPigment.h>
@@ -309,7 +310,7 @@ void KoRgbU8ColorSpaceTester::testOklchColorCompositeOp()
     dst.fromQColor(QColor(20, 30, 40, 0));
     op->composite(dst.data(), cs->pixelSize(), src.data(), cs->pixelSize(),
                   nullptr, 0, 1, 1, 1.0f);
-    QCOMPARE(dst.toQColor(), translucentSource);
+    QCOMPARE(memcmp(dst.data(), src.data(), cs->pixelSize()), 0);
 }
 
 void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
@@ -360,15 +361,23 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
         partialChannels,
         alphaLockedChannels,
     };
+    const QStringList channelSelectionNames {
+        QStringLiteral("all channels"),
+        QStringLiteral("partial channels"),
+        QStringLiteral("alpha locked"),
+    };
 
     for (const QString &operationId : operationIds) {
         const KoCompositeOp *op = cs->compositeOp(operationId);
         QVERIFY2(op, qPrintable(operationId));
 
-        for (const QBitArray &channelFlags : channelSelections) {
+        for (int channelSelection = 0;
+             channelSelection < channelSelections.size();
+             ++channelSelection) {
+            const QBitArray &channelFlags = channelSelections[channelSelection];
             for (const bool constantSource : {false, true}) {
                 QByteArray batchedDestination = initialDestination;
-                QByteArray pixelwiseDestination = initialDestination;
+                QByteArray rowwiseDestination = initialDestination;
 
                 KoCompositeOp::ParameterInfo params;
                 params.dstRowStart = reinterpret_cast<quint8 *>(batchedDestination.data());
@@ -385,20 +394,34 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
                 op->composite(params);
 
                 params.rows = 1;
-                params.cols = 1;
                 for (qint32 row = 0; row < rows; ++row) {
-                    for (qint32 column = 0; column < columns; ++column) {
-                        params.dstRowStart = reinterpret_cast<quint8 *>(pixelwiseDestination.data())
-                            + row * destinationStride + column * pixelSize;
-                        params.srcRowStart = reinterpret_cast<const quint8 *>(source.constData())
-                            + (constantSource ? 0 : row * sourceStride + column * pixelSize);
-                        params.maskRowStart = reinterpret_cast<const quint8 *>(mask.constData())
-                            + row * maskStride + column;
-                        op->composite(params);
-                    }
+                    params.dstRowStart = reinterpret_cast<quint8 *>(rowwiseDestination.data())
+                        + row * destinationStride;
+                    params.srcRowStart = reinterpret_cast<const quint8 *>(source.constData())
+                        + (constantSource ? 0 : row * sourceStride);
+                    params.maskRowStart = reinterpret_cast<const quint8 *>(mask.constData())
+                        + row * maskStride;
+                    op->composite(params);
                 }
 
-                QCOMPARE(batchedDestination, pixelwiseDestination);
+                int firstMismatch = -1;
+                for (int byte = 0; byte < batchedDestination.size(); ++byte) {
+                    if (batchedDestination[byte] != rowwiseDestination[byte]) {
+                        firstMismatch = byte;
+                        break;
+                    }
+                }
+                if (firstMismatch >= 0) {
+                    QFAIL(qPrintable(QStringLiteral(
+                                         "%1, %2, constant source: %3, byte %4: %5 != %6")
+                                         .arg(operationId)
+                                         .arg(channelSelectionNames[channelSelection])
+                                         .arg(constantSource ? QStringLiteral("yes")
+                                                             : QStringLiteral("no"))
+                                         .arg(firstMismatch)
+                                         .arg(quint8(batchedDestination[firstMismatch]))
+                                         .arg(quint8(rowwiseDestination[firstMismatch]))));
+                }
             }
         }
     }
