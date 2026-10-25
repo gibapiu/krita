@@ -8,12 +8,8 @@
 #include <QByteArray>
 #include <QVector>
 
-#include <algorithm>
-#include <array>
-#include <cmath>
 #include <type_traits>
 
-#include <KoColorProfile.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceMaths.h>
 #include <KoCompositeOp.h>
@@ -22,13 +18,8 @@
 
 #include "KoCompositeOpOklchUtils.h"
 #include "KoCompositeOpOver.h"
+#include "KoCompositeOpOverOklchSrgbU8FastPath.h"
 
-/**
- * A source-over composite operation that interpolates colors in OKLCH.
- *
- * Conversion through XYZ keeps the operation aware of the image's RGB profile.
- * The resulting color is converted back through Krita's color-management path.
- */
 template<class Traits>
 class KoCompositeOpOverOklch : public KoCompositeOp
 {
@@ -37,7 +28,7 @@ class KoCompositeOpOverOklch : public KoCompositeOp
 public:
     explicit KoCompositeOpOverOklch(const KoColorSpace *cs)
         : KoCompositeOp(cs, COMPOSITE_OVER_OKLCH, KoCompositeOp::categoryOKLCH())
-        , m_useDefaultSrgbU8FastPath(supportsDefaultSrgbU8FastPath(cs))
+        , m_srgbU8FastPathAvailable(SrgbU8FastPath::supportsColorSpace(cs))
         , m_conversionContexts(cs)
     {
     }
@@ -82,8 +73,8 @@ public:
         }
 
         if constexpr (std::is_same_v<channels_type, quint8>) {
-            if (m_useDefaultSrgbU8FastPath) {
-                compositeDefaultSrgbU8(
+            if (m_srgbU8FastPathAvailable) {
+                SrgbU8FastPath::composite(
                     params, opacity, allChannelFlags, alphaLocked, constantSource);
                 return;
             }
@@ -240,196 +231,7 @@ public:
 
 private:
     using ConversionContextStore = KoOklchConversionContextStore<Traits, float>;
-
-    static bool supportsDefaultSrgbU8FastPath(const KoColorSpace *colorSpace)
-    {
-        if constexpr (!std::is_same_v<channels_type, quint8>) {
-            return false;
-        }
-
-        // KoColorProfile does not expose whether an ICC profile is a matrix-shaper.
-        // Keep this path restricted to Krita's known built-in profile so a CLUT
-        // profile with otherwise similar metadata cannot be treated as a matrix.
-        const KoColorProfile *profile = colorSpace->profile();
-        return profile
-            && profile->name() == QStringLiteral("sRGB-elle-V2-srgbtrc.icc")
-            && profile->getColorPrimaries() == PRIMARIES_ITU_R_BT_709_5
-            && profile->getTransferCharacteristics() == TRC_IEC_61966_2_1;
-    }
-
-    static float srgbToLinear(float value)
-    {
-        return value <= 0.04045f
-            ? value / 12.92f
-            : std::pow((value + 0.055f) / 1.055f, 2.4f);
-    }
-
-    static const std::array<float, 256> &srgbDecodeTable()
-    {
-        static const std::array<float, 256> table = []() {
-            std::array<float, 256> result {};
-            for (int value = 0; value < 256; ++value) {
-                result[value] = srgbToLinear(float(value) / 255.0f);
-            }
-            return result;
-        }();
-        return table;
-    }
-
-    static const std::array<float, 255> &linearEncodingThresholds()
-    {
-        // Each boundary is the linear-light value halfway between adjacent
-        // encoded U8 values. Binary search therefore gives exact U8 rounding
-        // without evaluating the inverse transfer function for every pixel.
-        static const std::array<float, 255> thresholds = []() {
-            std::array<float, 255> result {};
-            for (int value = 0; value < 255; ++value) {
-                result[value] = srgbToLinear((float(value) + 0.5f) / 255.0f);
-            }
-            return result;
-        }();
-        return thresholds;
-    }
-
-    static quint8 linearToSrgbU8(float value)
-    {
-        if (!(value > 0.0f)) {
-            return 0;
-        }
-        if (value >= 1.0f) {
-            return 255;
-        }
-
-        const auto &thresholds = linearEncodingThresholds();
-        return quint8(std::upper_bound(thresholds.cbegin(), thresholds.cend(), value)
-                      - thresholds.cbegin());
-    }
-
-    static KoGamutMappingUtils::OkLch defaultSrgbU8ToOkLch(const channels_type *pixel)
-    {
-        const auto &decode = srgbDecodeTable();
-        const float red = decode[pixel[Traits::red_pos]];
-        const float green = decode[pixel[Traits::green_pos]];
-        const float blue = decode[pixel[Traits::blue_pos]];
-
-        const float l = 0.4122214708f * red + 0.5363325363f * green + 0.0514459929f * blue;
-        const float m = 0.2119034982f * red + 0.6806995451f * green + 0.1073969566f * blue;
-        const float s = 0.0883024619f * red + 0.2817188376f * green + 0.6299787005f * blue;
-
-        const float lRoot = std::cbrt(l);
-        const float mRoot = std::cbrt(m);
-        const float sRoot = std::cbrt(s);
-
-        return KoGamutMappingUtils::OkLabToOkLch(QVector4D(
-            0.2104542553f * lRoot + 0.7936177850f * mRoot - 0.0040720468f * sRoot,
-            1.9779984951f * lRoot - 2.4285922050f * mRoot + 0.4505937099f * sRoot,
-            0.0259040371f * lRoot + 0.7827717662f * mRoot - 0.8086757660f * sRoot,
-            0.0f));
-    }
-
-    static void defaultSrgbU8FromOkLab(const QVector4D &okLab,
-                                       channels_type *pixel,
-                                       bool allChannelFlags,
-                                       const QBitArray &channelFlags)
-    {
-        const float lRoot = okLab.x() + 0.3963377774f * okLab.y() + 0.2158037573f * okLab.z();
-        const float mRoot = okLab.x() - 0.1055613458f * okLab.y() - 0.0638541728f * okLab.z();
-        const float sRoot = okLab.x() - 0.0894841775f * okLab.y() - 1.2914855480f * okLab.z();
-        const float l = lRoot * lRoot * lRoot;
-        const float m = mRoot * mRoot * mRoot;
-        const float s = sRoot * sRoot * sRoot;
-
-        const quint8 red = linearToSrgbU8(
-            4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s);
-        const quint8 green = linearToSrgbU8(
-            -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s);
-        const quint8 blue = linearToSrgbU8(
-            -0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s);
-
-        if (allChannelFlags || channelFlags.testBit(Traits::red_pos)) {
-            pixel[Traits::red_pos] = red;
-        }
-        if (allChannelFlags || channelFlags.testBit(Traits::green_pos)) {
-            pixel[Traits::green_pos] = green;
-        }
-        if (allChannelFlags || channelFlags.testBit(Traits::blue_pos)) {
-            pixel[Traits::blue_pos] = blue;
-        }
-    }
-
-    static void compositeDefaultSrgbU8(const KoCompositeOp::ParameterInfo &params,
-                                       channels_type opacity,
-                                       bool allChannelFlags,
-                                       bool alphaLocked,
-                                       bool constantSource)
-    {
-        const channels_type zero = KoColorSpaceMathsTraits<channels_type>::zeroValue;
-        const channels_type unit = KoColorSpaceMathsTraits<channels_type>::unitValue;
-        const qint32 srcPixelIncrement = constantSource ? 0 : Traits::channels_nb;
-        KoGamutMappingUtils::OkLch constantSourceOkLch;
-        bool constantSourceConverted = false;
-
-        const quint8 *srcRow = params.srcRowStart;
-        quint8 *dstRow = params.dstRowStart;
-        const quint8 *maskRow = params.maskRowStart;
-
-        for (qint32 row = 0; row < params.rows; ++row) {
-            const channels_type *srcPixel = reinterpret_cast<const channels_type *>(srcRow);
-            channels_type *dstPixel = reinterpret_cast<channels_type *>(dstRow);
-
-            for (qint32 column = 0; column < params.cols; ++column) {
-                const channels_type srcAlpha = effectiveSourceAlpha(srcPixel, maskRow, column, opacity);
-                const channels_type dstAlpha = dstPixel[Traits::alpha_pos];
-                channels_type srcBlend = zero;
-
-                if (srcAlpha != zero) {
-                    if (alphaLocked || dstAlpha == unit) {
-                        srcBlend = srcAlpha;
-                    } else if (dstAlpha == zero) {
-                        if (!allChannelFlags) {
-                            clearColorChannels(dstPixel);
-                        }
-                        dstPixel[Traits::alpha_pos] = srcAlpha;
-                        srcBlend = unit;
-                    } else {
-                        const channels_type newAlpha = dstAlpha
-                            + KoColorSpaceMaths<channels_type>::multiply(unit - dstAlpha, srcAlpha);
-                        dstPixel[Traits::alpha_pos] = newAlpha;
-                        srcBlend = KoColorSpaceMaths<channels_type>::divide(srcAlpha, newAlpha);
-                    }
-                }
-
-                if (srcBlend == unit) {
-                    copyColorChannels(srcPixel, dstPixel, allChannelFlags, params.channelFlags);
-                } else if (srcBlend != zero) {
-                    if (constantSource && !constantSourceConverted) {
-                        constantSourceOkLch = defaultSrgbU8ToOkLch(srcPixel);
-                        constantSourceConverted = true;
-                    }
-                    const KoGamutMappingUtils::OkLch sourceOkLch = constantSource
-                        ? constantSourceOkLch
-                        : defaultSrgbU8ToOkLch(srcPixel);
-                    const KoGamutMappingUtils::OkLch destinationOkLch =
-                        defaultSrgbU8ToOkLch(dstPixel);
-                    const QVector4D result = KoGamutMappingUtils::interpolateOkLch(
-                        destinationOkLch,
-                        sourceOkLch,
-                        KoColorSpaceMaths<channels_type, float>::scaleToA(srcBlend));
-                    defaultSrgbU8FromOkLab(
-                        result, dstPixel, allChannelFlags, params.channelFlags);
-                }
-
-                srcPixel += srcPixelIncrement;
-                dstPixel += Traits::channels_nb;
-            }
-
-            srcRow += params.srcRowStride;
-            dstRow += params.dstRowStride;
-            if (maskRow) {
-                maskRow += params.maskRowStride;
-            }
-        }
-    }
+    using SrgbU8FastPath = KoCompositeOpOverOklchSrgbU8FastPath<Traits>;
 
     static void clearColorChannels(channels_type *pixel)
     {
@@ -478,7 +280,7 @@ private:
         return {value.x(), value.y(), value.z(), 1.0f};
     }
 
-    const bool m_useDefaultSrgbU8FastPath;
+    const bool m_srgbU8FastPathAvailable;
     mutable ConversionContextStore m_conversionContexts;
 };
 
