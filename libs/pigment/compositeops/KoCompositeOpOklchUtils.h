@@ -9,6 +9,7 @@
 #include <QScopedPointer>
 #include <QThreadStorage>
 #include <QVector>
+#include <QVector4D>
 
 #include <cstring>
 #include <mutex>
@@ -19,7 +20,23 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpaceTraits.h>
+#include <KoGamutMappingUtils.h>
 #include <KoXyzColorSpaceTraits.h>
+
+namespace KoOklchCompositeUtils
+{
+inline KoGamutMappingUtils::OkLch okLabToOkLchIgnoringProfileNoise(const QVector4D &okLab)
+{
+    KoGamutMappingUtils::OkLch okLch = KoGamutMappingUtils::OkLabToOkLch(okLab);
+    constexpr float maximumProfileNoiseChroma = 0.0001f;
+    if (okLch.chroma <= maximumProfileNoiseChroma) {
+        okLch.chroma = 0.0f;
+        okLch.hue = 0.0f;
+        okLch.hueIsPowerless = true;
+    }
+    return okLch;
+}
+}
 
 template<class Traits, class PerPixelValue>
 class KoOklchConversionContextStore

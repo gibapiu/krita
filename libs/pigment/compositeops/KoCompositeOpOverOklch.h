@@ -157,7 +157,7 @@ public:
                     conversionContext->toXyz->transform(params.srcRowStart,
                                                         reinterpret_cast<quint8 *>(&constantSourceXyz),
                                                         1);
-                    constantSourceOkLch = KoGamutMappingUtils::OkLabToOkLch(
+                    constantSourceOkLch = KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
                         KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                     constantSourceConverted = true;
                 }
@@ -176,11 +176,12 @@ public:
                 activePixelCount);
 
             for (qint32 pixel = 0; pixel < activePixelCount; ++pixel) {
-                const KoGamutMappingUtils::OkLch from = KoGamutMappingUtils::OkLabToOkLch(
+                const KoGamutMappingUtils::OkLch from =
+                    KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
                     KoGamutMappingUtils::XYZToOkLab(toVector(conversionContext->dstXyz[pixel])));
                 const KoGamutMappingUtils::OkLch to = constantSource
                     ? constantSourceOkLch
-                    : KoGamutMappingUtils::OkLabToOkLch(
+                    : KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
                         KoGamutMappingUtils::XYZToOkLab(toVector(conversionContext->srcXyz[pixel])));
                 conversionContext->dstXyz[pixel] = fromVector(KoGamutMappingUtils::OkLabToXYZ(
                     KoGamutMappingUtils::interpolateOkLch(

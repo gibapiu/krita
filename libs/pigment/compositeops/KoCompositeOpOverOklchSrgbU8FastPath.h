@@ -21,6 +21,8 @@
 #include <KoCompositeOp.h>
 #include <KoGamutMappingUtils.h>
 
+#include "KoCompositeOpOklchUtils.h"
+
 template<class Traits>
 class KoCompositeOpOverOklchSrgbU8FastPath
 {
@@ -275,7 +277,7 @@ private:
     static KoGamutMappingUtils::OkLch pixelToOkLch(const channels_type *pixel)
     {
         const LinearSrgb linearSrgb = decodeToLinearSrgb(readEncodedSrgbU8(pixel));
-        return KoGamutMappingUtils::OkLabToOkLch(
+        return KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
             cubeRootLmsToOkLab(linearSrgbToLms(linearSrgb)));
     }
 

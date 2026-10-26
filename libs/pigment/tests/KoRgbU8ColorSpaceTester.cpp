@@ -24,6 +24,7 @@
 #include "KoGamutMappingUtils.h"
 #include "KoMixColorsOp.h"
 #include "KoXyzColorSpaceTraits.h"
+#include "../compositeops/KoCompositeOpOklchUtils.h"
 #include <KoCompositeOpRegistry.h>
 #include <kistest.h>
 
@@ -480,10 +481,12 @@ void KoRgbU8ColorSpaceTester::testOklchSrgbFastPath()
                 const auto toVector = [](const KoXyzF32Traits::Pixel &pixel) {
                     return QVector4D(pixel.x, pixel.y, pixel.z, 0.0f);
                 };
-                const KoGamutMappingUtils::OkLch sourceOkLch = KoGamutMappingUtils::OkLabToOkLch(
-                    KoGamutMappingUtils::XYZToOkLab(toVector(sourceXyz)));
-                const KoGamutMappingUtils::OkLch destinationOkLch = KoGamutMappingUtils::OkLabToOkLch(
-                    KoGamutMappingUtils::XYZToOkLab(toVector(destinationXyz)));
+                const KoGamutMappingUtils::OkLch sourceOkLch =
+                    KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
+                        KoGamutMappingUtils::XYZToOkLab(toVector(sourceXyz)));
+                const KoGamutMappingUtils::OkLch destinationOkLch =
+                    KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
+                        KoGamutMappingUtils::XYZToOkLab(toVector(destinationXyz)));
                 const quint8 integerOpacity = KoColorSpaceMaths<float, quint8>::scaleToA(opacity);
                 const QVector4D resultOkLab = KoGamutMappingUtils::interpolateOkLch(
                     destinationOkLch,
