@@ -75,12 +75,6 @@ public:
             return;
         }
 
-        if (!hasColorBlendingOverlap(params, opacity)) {
-            KoCompositeOpOver<Traits> sourceOver(colorSpace());
-            sourceOver.composite(params);
-            return;
-        }
-
         typename ConversionContextStore::ConversionContext *conversionContext =
             m_conversionContexts.contextForCurrentThread();
         if (!conversionContext || !conversionContext->isValid()) {
@@ -257,41 +251,6 @@ public:
 
 private:
     using ConversionContextStore = KoOklchConversionContextStore<Traits, channels_type>;
-
-    static bool hasColorBlendingOverlap(const KoCompositeOp::ParameterInfo &params,
-                                        channels_type opacity)
-    {
-        const bool constantSource = params.srcRowStride == 0;
-        const qint32 sourcePixelIncrement = constantSource ? 0 : Traits::channels_nb;
-        const channels_type zero = KoColorSpaceMathsTraits<channels_type>::zeroValue;
-        const quint8 *sourceRow = params.srcRowStart;
-        const quint8 *destinationRow = params.dstRowStart;
-        const quint8 *maskRow = params.maskRowStart;
-
-        for (qint32 row = 0; row < params.rows; ++row) {
-            const channels_type *sourcePixel =
-                reinterpret_cast<const channels_type *>(sourceRow);
-            const channels_type *destinationPixel =
-                reinterpret_cast<const channels_type *>(destinationRow);
-
-            for (qint32 column = 0; column < params.cols; ++column) {
-                if (effectiveSourceAlpha(sourcePixel, maskRow, column, opacity) != zero
-                    && destinationPixel[Traits::alpha_pos] != zero) {
-                    return true;
-                }
-                sourcePixel += sourcePixelIncrement;
-                destinationPixel += Traits::channels_nb;
-            }
-
-            sourceRow += params.srcRowStride;
-            destinationRow += params.dstRowStride;
-            if (maskRow) {
-                maskRow += params.maskRowStride;
-            }
-        }
-
-        return false;
-    }
 
     static void clearColorChannels(channels_type *pixel)
     {
