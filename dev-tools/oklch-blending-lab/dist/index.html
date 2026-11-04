@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Normal OKLCH blending lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Krita pigment diagnostic</p>
+      <h1>Normal OKLCH blending lab</h1>
+      <p class="lede">The supplied dark-gradient cases, rendered through several interpolation and gamut-mapping paths.</p>
+    </div>
+    <div class="header-tools">
+      <nav class="page-nav" aria-label="Diagnostic pages">
+        <a aria-current="page" href="index.html">2D blend cases</a>
+        <a href="space.html">3D path explorer</a>
+      </nav>
+      <div class="support" id="supportStatus" aria-live="polite"></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="notice" aria-labelledby="css-note-title">
+      <div class="notice-mark">CSS</div>
+      <div>
+        <h2 id="css-note-title">Interpolation is not layer compositing</h2>
+        <p>CSS can explicitly interpolate colors and gradients in Oklab or OKLCH. Browser <code>normal</code> compositing remains source-over; it does not interpolate the backdrop and source in Oklab. “CSS / Oklab” below is the CSS Color interpolation model evaluated per pixel.</p>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Rendering controls">
+      <label>
+        <span>Test arrangement</span>
+        <select id="caseSelect">
+          <option value="case1">Case 1 · solid yellow overlay</option>
+          <option value="case2">Case 2 · blue → yellow radial overlay</option>
+          <option value="stacked">Stacked · Case 1 then Case 2</option>
+        </select>
+      </label>
+      <label>
+        <span>Overlay opacity <output id="opacityOutput">50%</output></span>
+        <input id="opacityInput" type="range" min="0" max="100" value="50" step="1">
+      </label>
+      <label>
+        <span>COFb σ <output id="sigmaOutput">0.19</output></span>
+        <input id="sigmaInput" type="range" min="0.02" max="0.50" value="0.19" step="0.01">
+      </label>
+      <label>
+        <span>Canvas resolution</span>
+        <select id="resolutionSelect">
+          <option value="1">Fast · 128 × 88</option>
+          <option value="2">Detailed · 256 × 176</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="legend" aria-label="Method legend">
+      <button class="method-toggle active" data-method="browser">Browser normal</button>
+      <button class="method-toggle active" data-method="cssOklab">CSS / Oklab</button>
+      <button class="method-toggle" data-method="rawOklch">Raw OKLCH</button>
+      <button class="method-toggle active" data-method="kritaCurrent">Krita current patch</button>
+      <button class="method-toggle" data-method="cofb">COFb</button>
+      <button class="method-toggle active" data-method="hybrid">Toe + COFb</button>
+      <button class="method-toggle active" data-method="hybridMinde">Toe + COFb + Local MINDE</button>
+      <button class="method-toggle active" data-method="endpointHybridMinde">Endpoint-aware hybrid + Local MINDE</button>
+    </section>
+
+    <section class="workspace" aria-live="polite">
+      <div class="render-state" id="renderState">Rendering…</div>
+      <div id="methodRows"></div>
+    </section>
+
+    <aside class="inspector" id="inspector">
+      <div>
+        <span class="inspector-label">Pixel inspector</span>
+        <strong id="inspectorTitle">Move over a swatch</strong>
+      </div>
+      <dl>
+        <div><dt>Backdrop</dt><dd id="inspectBackdrop">—</dd></div>
+        <div><dt>Source</dt><dd id="inspectSource">—</dd></div>
+        <div><dt>Output</dt><dd id="inspectOutput">—</dd></div>
+        <div><dt>Pre-map gamut</dt><dd id="inspectGamut">—</dd></div>
+      </dl>
+    </aside>
+
+    <section class="notes">
+      <h2>How to read this page</h2>
+      <div class="notes-grid">
+        <p><strong>Raw OKLCH</strong> follows the shorter hue arc and hard-clips display RGB. It exposes the neutral-axis detour.</p>
+        <p><strong>Krita current patch</strong> applies the cubic toe only to lightness after polar interpolation.</p>
+        <p><strong>Toe + COFb</strong> radially transforms all Oklab components, then blends polar and Cartesian paths with <code>w=C/(C+σ)</code>.</p>
+        <p><strong>Local MINDE</strong> follows the CSS Color 4 binary-search reference: reduce OKLCH chroma until clipping changes the color by less than one Oklab JND.</p>
+        <p><strong>Endpoint-aware hybrid</strong> additionally fades the polar contribution as either endpoint’s transformed chroma approaches zero, addressing COFb’s documented residual achromatic-endpoint bow.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

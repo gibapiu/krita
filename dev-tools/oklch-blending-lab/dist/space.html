@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oklab 3D path explorer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="space.css">
+</head>
+<body>
+  <header class="page-header space-header">
+    <div>
+      <p class="eyebrow">Krita pigment diagnostic</p>
+      <h1>Oklab 3D path explorer</h1>
+      <p class="lede">Rotate the sRGB gamut, choose two endpoints, and compare how interpolation and gamut mapping bend the path between them.</p>
+    </div>
+    <div class="header-tools">
+      <nav class="page-nav" aria-label="Diagnostic pages">
+        <a href="index.html">2D blend cases</a>
+        <a aria-current="page" href="space.html">3D path explorer</a>
+      </nav>
+      <div class="coordinate-key"><span>L</span> vertical · <span>a</span> red/green · <span>b</span> yellow/blue</div>
+    </div>
+  </header>
+
+  <main class="space-main">
+    <section class="space-layout">
+      <aside class="space-controls" aria-label="Path controls">
+        <div class="control-section endpoint-section">
+          <div class="section-heading">
+            <div><p class="eyebrow">Endpoints</p><h2>Choose two sRGB colors</h2></div>
+            <button class="icon-button" id="swapColors" type="button" title="Swap endpoints" aria-label="Swap endpoints">⇄</button>
+          </div>
+          <div class="endpoint-grid">
+            <label class="endpoint-card endpoint-a">
+              <span class="endpoint-name">A · start</span>
+              <span class="color-control"><input id="colorA" type="color" value="#00fffa"><input id="hexA" type="text" value="#00fffa" maxlength="7" spellcheck="false" aria-label="Start color hex"></span>
+              <output id="colorAInfo"></output>
+            </label>
+            <label class="endpoint-card endpoint-b">
+              <span class="endpoint-name">B · end</span>
+              <span class="color-control"><input id="colorB" type="color" value="#e7eb00"><input id="hexB" type="text" value="#e7eb00" maxlength="7" spellcheck="false" aria-label="End color hex"></span>
+              <output id="colorBInfo"></output>
+            </label>
+          </div>
+          <div class="presets" aria-label="Color pair presets">
+            <button type="button" data-a="#00fffa" data-b="#e7eb00">Cyan ↔ yellow</button>
+            <button type="button" data-a="#ff8c00" data-b="#e7eb00">Orange ↔ yellow</button>
+            <button type="button" data-a="#c300ff" data-b="#e7eb00">Purple ↔ yellow</button>
+            <button type="button" data-a="#0000ff" data-b="#ffff00">Blue ↔ yellow</button>
+            <button type="button" data-a="#0000ff" data-b="#000000">Blue ↔ black</button>
+            <button type="button" data-a="#ff0000" data-b="#00ff00">Red ↔ green</button>
+            <button type="button" data-a="#00ff00" data-b="#ff00ff">Green ↔ magenta · antipodal</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <div class="section-heading"><div><p class="eyebrow">Path construction</p><h2>Algorithms in the viewport</h2></div></div>
+          <div class="algorithm-toggles" id="algorithmToggles"></div>
+        </div>
+
+        <div class="control-section compact-controls">
+          <label>
+            <span>Output gamut mapping</span>
+            <select id="mappingSelect">
+              <option value="none">None · show excursions</option>
+              <option value="clip">RGB component clip</option>
+              <option value="radial">Fixed L/h radial clamp</option>
+              <option value="minde" selected>CSS Local MINDE</option>
+              <option value="soft">Soft radial compression · 85% knee</option>
+            </select>
+          </label>
+          <label>
+            <span>Deviation reference</span>
+            <select id="referenceSelect">
+              <option value="oklab" selected>Cartesian Oklab chord</option>
+              <option value="raw">Raw OKLCH arc</option>
+              <option value="srgb">Encoded-sRGB source-over</option>
+            </select>
+          </label>
+          <label>
+            <span>COFb σ <output id="pathSigmaOutput">0.19</output></span>
+            <input id="pathSigma" type="range" min="0.02" max="0.50" value="0.19" step="0.01">
+          </label>
+          <label>
+            <span>Endpoint σe <output id="endpointSigmaOutput">0.02</output></span>
+            <input id="endpointSigma" type="range" min="0.001" max="0.10" value="0.02" step="0.001">
+          </label>
+          <label>
+            <span>Antipodal transition begins <output id="angleStartOutput">160°</output></span>
+            <input id="angleStart" type="range" min="120" max="179" value="160" step="1">
+          </label>
+        </div>
+      </aside>
+
+      <section class="viewport-panel" aria-label="3D Oklab gamut and paths">
+        <div class="viewport-toolbar">
+          <div class="view-buttons" aria-label="Camera views">
+            <button type="button" data-view="perspective" class="active">Perspective</button>
+            <button type="button" data-view="top">Top · a/b</button>
+            <button type="button" data-view="front">Front · a/L</button>
+          </div>
+          <label class="opacity-control"><span>Shell</span><input id="shellOpacity" type="range" min="0" max="100" value="38"></label>
+          <label class="check-control"><input id="showOriginal" type="checkbox" checked> Pre-map ghosts</label>
+        </div>
+        <div class="viewport-wrap">
+          <canvas id="gamutCanvas" aria-label="Rotatable three-dimensional Oklab representation of the sRGB gamut"></canvas>
+          <div class="viewport-instruction">Drag to rotate · wheel to zoom · hover a path</div>
+          <div class="path-readout" id="pathReadout">Hover a path to inspect its direction and gamut state.</div>
+        </div>
+        <div class="axis-note"><strong>Cartesian Oklab view.</strong> OKLCH hue is the angle around the neutral L axis; chroma is radial distance from it. Paths may leave the colored sRGB shell before mapping.</div>
+      </section>
+    </section>
+
+    <section class="metrics-section">
+      <div class="metrics-heading">
+        <div><p class="eyebrow">Measured along 129 samples</p><h2>Path cost and intervention frequency</h2></div>
+        <p>ΔE values use Euclidean Oklab. “Altered” counts samples changed by the selected gamut mapper by more than 0.001 ΔE.</p>
+      </div>
+      <div class="metrics-table-wrap">
+        <table class="metrics-table">
+          <thead><tr><th>Algorithm</th><th>Rendered path</th><th>Pre-map OOG</th><th>In gamut after</th><th>Altered</th><th>Mean map ΔE</th><th>Max map ΔE</th><th>Mean ΔE vs ref</th><th>Path stretch</th></tr></thead>
+          <tbody id="metricsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="interpretation-grid">
+      <article><p class="eyebrow">Geometry</p><h2>Inside versus surface</h2><p>The colored cloud is the boundary of the sRGB cube transformed into Oklab. An unmodified path may remain inside, leave it, or touch it. Mapping should constrain only what needs intervention—not force every point onto the surface.</p></article>
+      <article><p class="eyebrow">Topology</p><h2>The neutral axis</h2><p>At zero chroma every hue collapses to the same point. Cartesian Oklab shows that collapse directly; a polar path can detour around the axis even when its endpoints are close in RGB.</p></article>
+      <article><p class="eyebrow">Tradeoff</p><h2>Smoothness costs identity</h2><p>Hard projection preserves interior colors but creates a boundary kink. Soft compression bends earlier and changes more samples. Local MINDE tolerates only a perceptually small clipped difference.</p></article>
+      <article><p class="eyebrow">Antipodes</p><h2>Collapse before direction swaps</h2><p>The antipodal gate progressively removes the polar bow as endpoint separation approaches 180°. At the ambiguous point it coincides with the Oklab chord, then reopens continuously on the other side.</p></article>
+      <article><p class="eyebrow">Clockwise alternative</p><h2>Rotate instead of collapse</h2><p>The coral path keeps the polar bow and rotates its displacement clockwise around the oriented A→B Oklab chord. It avoids a side jump, but spends the third dimension and can create the deliberate lightness bulge shown here.</p></article>
+    </section>
+  </main>
+
+  <script type="module" src="space.js"></script>
+</body>
+</html>
