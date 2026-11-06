@@ -14,6 +14,7 @@
 
 #include <simpletest.h>
 #include <DebugPigment.h>
+#include <cmath>
 #include <string.h>
 
 #include "KoColor.h"
@@ -268,6 +269,42 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOp()
     QCOMPARE(dst.toQColor(), QColor(Qt::red));
 }
 
+void KoRgbU8ColorSpaceTester::testOklchHybridCompositeOp()
+{
+    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoCompositeOp *op = cs->compositeOp(COMPOSITE_OVER_OKLCH_HYBRID);
+    QVERIFY(op);
+
+    constexpr float lightness = 0.65f;
+    constexpr float chroma = 0.2f;
+    constexpr float pi = 3.14159265358979323846f;
+    const auto endpointAtHue = [=](float hue) {
+        return KoOklchCompositeUtils::prepareAntipodalHybridEndpoint(
+            QVector4D(lightness,
+                      chroma * std::cos(hue),
+                      chroma * std::sin(hue),
+                      0.0f));
+    };
+
+    const auto from = endpointAtHue(0.0f);
+    const QVector4D antipodalMidpoint = KoOklchCompositeUtils::interpolateAntipodalHybrid(
+        from, endpointAtHue(pi), 0.5f);
+    QVERIFY(qAbs(antipodalMidpoint.x() - lightness) < 0.000001f);
+    QVERIFY(std::hypot(antipodalMidpoint.y(), antipodalMidpoint.z()) < 0.000001f);
+
+    const QVector4D belowMidpoint = KoOklchCompositeUtils::interpolateAntipodalHybrid(
+        from, endpointAtHue(pi - 0.00001f), 0.5f);
+    const QVector4D aboveMidpoint = KoOklchCompositeUtils::interpolateAntipodalHybrid(
+        from, endpointAtHue(-pi + 0.00001f), 0.5f);
+    QVERIFY((belowMidpoint - aboveMidpoint).length() < 0.00001f);
+
+    KoColor source(QColor(Qt::red), cs);
+    KoColor destination(QColor(Qt::blue), cs);
+    op->composite(destination.data(), cs->pixelSize(), source.data(), cs->pixelSize(),
+                  nullptr, 0, 1, 1, 1.0f);
+    QCOMPARE(destination.toQColor(), QColor(Qt::red));
+}
+
 void KoRgbU8ColorSpaceTester::testOklchColorCompositeOp()
 {
     const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -357,7 +394,11 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
     QBitArray alphaLockedChannels(pixelSize, true);
     alphaLockedChannels.setBit(ALPHA_CHANNEL, false);
 
-    const QList<QString> operationIds {COMPOSITE_OVER_OKLCH, COMPOSITE_COLOR_OKLCH};
+    const QList<QString> operationIds {
+        COMPOSITE_OVER_OKLCH,
+        COMPOSITE_OVER_OKLCH_HYBRID,
+        COMPOSITE_COLOR_OKLCH,
+    };
     const QList<QBitArray> channelSelections {
         QBitArray(),
         partialChannels,
@@ -432,8 +473,6 @@ void KoRgbU8ColorSpaceTester::testOklchCompositeOpBatches()
 void KoRgbU8ColorSpaceTester::testOklchSrgbFastPath()
 {
     const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
-    const KoCompositeOp *op = cs->compositeOp(COMPOSITE_OVER_OKLCH);
-    QVERIFY(op);
     QCOMPARE(cs->profile()->name(), QStringLiteral("sRGB-elle-V2-srgbtrc.icc"));
     QCOMPARE(cs->profile()->getColorPrimaries(), PRIMARIES_ITU_R_BT_709_5);
     QCOMPARE(cs->profile()->getTransferCharacteristics(), TRC_IEC_61966_2_1);
@@ -463,50 +502,68 @@ void KoRgbU8ColorSpaceTester::testOklchSrgbFastPath()
     };
     const QList<float> opacities {0.17f, 0.5f, 0.83f};
 
-    for (const QColor &sourceColor : colors) {
-        for (const QColor &destinationColor : colors) {
-            for (const float opacity : opacities) {
-                KoColor source(sourceColor, cs);
-                KoColor actual(destinationColor, cs);
-                KoColor expected(destinationColor, cs);
+    const QList<QPair<QString, bool>> modes {
+        {COMPOSITE_OVER_OKLCH, false},
+        {COMPOSITE_OVER_OKLCH_HYBRID, true},
+    };
 
-                op->composite(actual.data(), cs->pixelSize(), source.data(), cs->pixelSize(),
-                              nullptr, 0, 1, 1, opacity);
+    for (const auto &mode : modes) {
+        const KoCompositeOp *op = cs->compositeOp(mode.first);
+        QVERIFY2(op, qPrintable(mode.first));
+        for (const QColor &sourceColor : colors) {
+            for (const QColor &destinationColor : colors) {
+                for (const float opacity : opacities) {
+                    KoColor source(sourceColor, cs);
+                    KoColor actual(destinationColor, cs);
+                    KoColor expected(destinationColor, cs);
 
-                KoXyzF32Traits::Pixel sourceXyz;
-                KoXyzF32Traits::Pixel destinationXyz;
-                toXyz->transform(source.data(), reinterpret_cast<quint8 *>(&sourceXyz), 1);
-                toXyz->transform(expected.data(), reinterpret_cast<quint8 *>(&destinationXyz), 1);
+                    op->composite(actual.data(), cs->pixelSize(), source.data(), cs->pixelSize(),
+                                  nullptr, 0, 1, 1, opacity);
 
-                const auto toVector = [](const KoXyzF32Traits::Pixel &pixel) {
-                    return QVector4D(pixel.x, pixel.y, pixel.z, 0.0f);
-                };
-                const KoGamutMappingUtils::OkLch sourceOkLch =
-                    KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
-                        KoGamutMappingUtils::XYZToOkLab(toVector(sourceXyz)));
-                const KoGamutMappingUtils::OkLch destinationOkLch =
-                    KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
-                        KoGamutMappingUtils::XYZToOkLab(toVector(destinationXyz)));
-                const quint8 integerOpacity = KoColorSpaceMaths<float, quint8>::scaleToA(opacity);
-                const QVector4D resultOkLab = KoGamutMappingUtils::interpolateOkLch(
-                    destinationOkLch,
-                    sourceOkLch,
-                    KoColorSpaceMaths<quint8, float>::scaleToA(integerOpacity));
-                const QVector4D resultXyz = KoGamutMappingUtils::OkLabToXYZ(resultOkLab);
-                const KoXyzF32Traits::Pixel referenceXyz {
-                    resultXyz.x(), resultXyz.y(), resultXyz.z(), 1.0f};
-                fromXyz->transform(reinterpret_cast<const quint8 *>(&referenceXyz), expected.data(), 1);
+                    KoXyzF32Traits::Pixel sourceXyz;
+                    KoXyzF32Traits::Pixel destinationXyz;
+                    toXyz->transform(source.data(), reinterpret_cast<quint8 *>(&sourceXyz), 1);
+                    toXyz->transform(expected.data(), reinterpret_cast<quint8 *>(&destinationXyz), 1);
 
-                for (int channel = 0; channel < ALPHA_CHANNEL; ++channel) {
-                    const int difference = qAbs(int(actual.data()[channel]) - int(expected.data()[channel]));
-                    QVERIFY2(difference <= 2,
-                             qPrintable(QStringLiteral("%1 -> %2 at %3, channel %4 differs by %5")
-                                            .arg(destinationColor.name(), sourceColor.name())
-                                            .arg(opacity)
-                                            .arg(channel)
-                                            .arg(difference)));
+                    const auto toVector = [](const KoXyzF32Traits::Pixel &pixel) {
+                        return QVector4D(pixel.x, pixel.y, pixel.z, 0.0f);
+                    };
+                    const QVector4D sourceOkLab = KoGamutMappingUtils::XYZToOkLab(
+                        toVector(sourceXyz));
+                    const QVector4D destinationOkLab = KoGamutMappingUtils::XYZToOkLab(
+                        toVector(destinationXyz));
+                    const quint8 integerOpacity = KoColorSpaceMaths<float, quint8>::scaleToA(opacity);
+                    const float amount = KoColorSpaceMaths<quint8, float>::scaleToA(integerOpacity);
+                    const QVector4D resultOkLab = mode.second
+                        ? KoOklchCompositeUtils::interpolateAntipodalHybrid(
+                            KoOklchCompositeUtils::prepareAntipodalHybridEndpoint(destinationOkLab),
+                            KoOklchCompositeUtils::prepareAntipodalHybridEndpoint(sourceOkLab),
+                            amount)
+                        : KoGamutMappingUtils::interpolateOkLch(
+                            KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(destinationOkLab),
+                            KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(sourceOkLab),
+                            amount);
+                    const QVector4D resultXyz = KoGamutMappingUtils::OkLabToXYZ(resultOkLab);
+                    const KoXyzF32Traits::Pixel referenceXyz {
+                        resultXyz.x(), resultXyz.y(), resultXyz.z(), 1.0f};
+                    fromXyz->transform(
+                        reinterpret_cast<const quint8 *>(&referenceXyz), expected.data(), 1);
+
+                    for (int channel = 0; channel < ALPHA_CHANNEL; ++channel) {
+                        const int difference = qAbs(
+                            int(actual.data()[channel]) - int(expected.data()[channel]));
+                        QVERIFY2(
+                            difference <= 2,
+                            qPrintable(QStringLiteral(
+                                           "%1: %2 -> %3 at %4, channel %5 differs by %6")
+                                           .arg(mode.first)
+                                           .arg(destinationColor.name(), sourceColor.name())
+                                           .arg(opacity)
+                                           .arg(channel)
+                                           .arg(difference)));
+                    }
+                    QCOMPARE(actual.data()[ALPHA_CHANNEL], expected.data()[ALPHA_CHANNEL]);
                 }
-                QCOMPARE(actual.data()[ALPHA_CHANNEL], expected.data()[ALPHA_CHANNEL]);
             }
         }
     }

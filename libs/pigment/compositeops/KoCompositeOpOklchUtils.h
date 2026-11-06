@@ -11,6 +11,8 @@
 #include <QVector>
 #include <QVector4D>
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <mutex>
 #include <utility>
@@ -25,16 +27,141 @@
 
 namespace KoOklchCompositeUtils
 {
+inline constexpr float maximumProfileNoiseChroma = 0.0001f;
+
 inline KoGamutMappingUtils::OkLch okLabToOkLchIgnoringProfileNoise(const QVector4D &okLab)
 {
     KoGamutMappingUtils::OkLch okLch = KoGamutMappingUtils::OkLabToOkLch(okLab);
-    constexpr float maximumProfileNoiseChroma = 0.0001f;
     if (okLch.chroma <= maximumProfileNoiseChroma) {
         okLch.chroma = 0.0f;
         okLch.hue = 0.0f;
         okLch.hueIsPowerless = true;
     }
     return okLch;
+}
+
+struct AntipodalHybridEndpoint
+{
+    QVector4D okLab;
+    QVector4D radialOkLab;
+    KoGamutMappingUtils::OkLch radialOkLch;
+};
+
+inline constexpr float radialLightnessBoundary = 6.0f / 29.0f;
+inline constexpr float radialLightnessOutputBoundary = 0.08f;
+inline constexpr float radialLightnessCubicScale = 24389.0f / 2700.0f;
+inline constexpr float continuousFallbackSigma = 0.19f;
+inline constexpr float endpointChromaSigma = 0.02f;
+inline constexpr float antipodalFadeStart = 160.0f * 3.14159265358979323846f / 180.0f;
+
+// This is a radial coordinate transform: L, a and b are scaled together.
+// It must not be applied as a lightness-only correction.
+inline float applyRadialLightnessTransform(float lightness)
+{
+    return lightness <= radialLightnessBoundary
+        ? radialLightnessCubicScale * lightness * lightness * lightness
+        : 1.16f * lightness - 0.16f;
+}
+
+inline float removeRadialLightnessTransform(float lightness)
+{
+    return lightness <= radialLightnessOutputBoundary
+        ? std::cbrt(lightness / radialLightnessCubicScale)
+        : (lightness + 0.16f) / 1.16f;
+}
+
+inline AntipodalHybridEndpoint prepareAntipodalHybridEndpoint(const QVector4D &okLab)
+{
+    const KoGamutMappingUtils::OkLch okLch = okLabToOkLchIgnoringProfileNoise(okLab);
+    const QVector4D cleanedOkLab(okLab.x(),
+                                okLch.hueIsPowerless ? 0.0f : okLab.y(),
+                                okLch.hueIsPowerless ? 0.0f : okLab.z(),
+                                okLab.w());
+    const float radialLightness = applyRadialLightnessTransform(okLab.x());
+    const float scale = std::abs(okLab.x()) > 1.0e-12f
+        ? radialLightness / okLab.x()
+        : 0.0f;
+    const QVector4D radialOkLab(radialLightness,
+                               cleanedOkLab.y() * scale,
+                               cleanedOkLab.z() * scale,
+                               okLab.w());
+    KoGamutMappingUtils::OkLch radialOkLch = okLch;
+    radialOkLch.lightness = radialLightness;
+    radialOkLch.chroma *= scale;
+    radialOkLch.hueIsPowerless = radialOkLch.chroma <= maximumProfileNoiseChroma;
+    return {cleanedOkLab, radialOkLab, radialOkLch};
+}
+
+inline float smootherStep(float amount)
+{
+    return amount * amount * amount * (amount * (amount * 6.0f - 15.0f) + 10.0f);
+}
+
+inline QVector4D interpolateAntipodalHybrid(const AntipodalHybridEndpoint &from,
+                                            const AntipodalHybridEndpoint &to,
+                                            float amount)
+{
+    if (amount <= 0.0f) {
+        return from.okLab;
+    }
+    if (amount >= 1.0f) {
+        return to.okLab;
+    }
+
+    constexpr float pi = 3.14159265358979323846f;
+    constexpr float twoPi = 2.0f * pi;
+    float fromHue = from.radialOkLch.hue;
+    float toHue = to.radialOkLch.hue;
+    if (from.radialOkLch.hueIsPowerless) {
+        fromHue = to.radialOkLch.hueIsPowerless ? 0.0f : toHue;
+    }
+    if (to.radialOkLch.hueIsPowerless) {
+        toHue = fromHue;
+    }
+    if (toHue - fromHue > pi) {
+        fromHue += twoPi;
+    } else if (toHue - fromHue < -pi) {
+        toHue += twoPi;
+    }
+
+    const float radialLightness = from.radialOkLch.lightness
+        + amount * (to.radialOkLch.lightness - from.radialOkLch.lightness);
+    const float radialChroma = from.radialOkLch.chroma
+        + amount * (to.radialOkLch.chroma - from.radialOkLch.chroma);
+    const float hue = fromHue + amount * (toHue - fromHue);
+    const float polarA = radialChroma * std::cos(hue);
+    const float polarB = radialChroma * std::sin(hue);
+    const float cartesianA = from.radialOkLab.y()
+        + amount * (to.radialOkLab.y() - from.radialOkLab.y());
+    const float cartesianB = from.radialOkLab.z()
+        + amount * (to.radialOkLab.z() - from.radialOkLab.z());
+
+    float polarWeight = radialChroma / (radialChroma + continuousFallbackSigma);
+    const float minimumEndpointChroma = std::min(from.radialOkLch.chroma,
+                                                 to.radialOkLch.chroma);
+    polarWeight *= minimumEndpointChroma
+        / (minimumEndpointChroma + endpointChromaSigma);
+
+    if (!from.radialOkLch.hueIsPowerless && !to.radialOkLch.hueIsPowerless) {
+        float separation = std::abs(to.radialOkLch.hue - from.radialOkLch.hue);
+        if (separation > pi) {
+            separation = twoPi - separation;
+        }
+        if (separation > antipodalFadeStart) {
+            const float fadeAmount = (separation - antipodalFadeStart)
+                / (pi - antipodalFadeStart);
+            polarWeight *= 1.0f - smootherStep(fadeAmount);
+        }
+    }
+
+    const float lightness = removeRadialLightnessTransform(radialLightness);
+    const float scale = std::abs(radialLightness) > 1.0e-12f
+        ? lightness / radialLightness
+        : 0.0f;
+    return QVector4D(lightness,
+                     (cartesianA + polarWeight * (polarA - cartesianA)) * scale,
+                     (cartesianB + polarWeight * (polarB - cartesianB)) * scale,
+                     from.okLab.w() + amount * (to.okLab.w() - from.okLab.w()));
 }
 }
 

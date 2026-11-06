@@ -333,6 +333,7 @@ struct AddRGBOps<Traits, true>
         cs->addCompositeOp(new KoCompositeOpCopyChannel<Traits,blue_pos >(cs, COMPOSITE_COPY_BLUE , KoCompositeOp::categoryMisc()));
 
         cs->addCompositeOp(new KoCompositeOpOverOklch<Traits>(cs));
+        cs->addCompositeOp(new KoCompositeOpOverOklch<Traits, true>(cs));
         cs->addCompositeOp(new KoCompositeOpColorOklch<Traits>(cs));
 
         add<CFTangentNormalmap<channels_type> >(cs, COMPOSITE_TANGENT_NORMALMAP  , KoCompositeOp::categoryMisc());

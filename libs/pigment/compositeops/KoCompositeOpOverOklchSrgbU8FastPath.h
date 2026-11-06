@@ -23,10 +23,13 @@
 
 #include "KoCompositeOpOklchUtils.h"
 
-template<class Traits>
+template<class Traits, bool UseAntipodalHybrid = false>
 class KoCompositeOpOverOklchSrgbU8FastPath
 {
     using channels_type = typename Traits::channels_type;
+    using Endpoint = std::conditional_t<UseAntipodalHybrid,
+                                        KoOklchCompositeUtils::AntipodalHybridEndpoint,
+                                        KoGamutMappingUtils::OkLch>;
 
     struct EncodedSrgbU8 {
         quint8 red;
@@ -74,8 +77,8 @@ public:
         const channels_type zeroChannelValue = KoColorSpaceMathsTraits<channels_type>::zeroValue;
         const channels_type opaqueChannelValue = KoColorSpaceMathsTraits<channels_type>::unitValue;
         const qint32 sourceChannelIncrement = constantSource ? 0 : Traits::channels_nb;
-        KoGamutMappingUtils::OkLch constantSourceOkLch;
-        bool constantSourceOkLchInitialized = false;
+        Endpoint constantSourceEndpoint;
+        bool constantSourceEndpointInitialized = false;
 
         const quint8 *sourceRow = params.srcRowStart;
         quint8 *destinationRow = params.dstRowStart;
@@ -114,18 +117,17 @@ public:
                     copyColorChannels(
                         sourcePixel, destinationPixel, allChannelsEnabled, params.channelFlags);
                 } else if (sourceColorWeight != zeroChannelValue) {
-                    if (constantSource && !constantSourceOkLchInitialized) {
-                        constantSourceOkLch = pixelToOkLch(sourcePixel);
-                        constantSourceOkLchInitialized = true;
+                    if (constantSource && !constantSourceEndpointInitialized) {
+                        constantSourceEndpoint = pixelToEndpoint(sourcePixel);
+                        constantSourceEndpointInitialized = true;
                     }
-                    const KoGamutMappingUtils::OkLch sourceOkLch = constantSource
-                        ? constantSourceOkLch
-                        : pixelToOkLch(sourcePixel);
-                    const KoGamutMappingUtils::OkLch destinationOkLch =
-                        pixelToOkLch(destinationPixel);
-                    const QVector4D blendedOkLab = KoGamutMappingUtils::interpolateOkLch(
-                        destinationOkLch,
-                        sourceOkLch,
+                    const Endpoint sourceEndpoint = constantSource
+                        ? constantSourceEndpoint
+                        : pixelToEndpoint(sourcePixel);
+                    const Endpoint destinationEndpoint = pixelToEndpoint(destinationPixel);
+                    const QVector4D blendedOkLab = interpolateEndpoints(
+                        destinationEndpoint,
+                        sourceEndpoint,
                         KoColorSpaceMaths<channels_type, float>::scaleToA(sourceColorWeight));
                     writeOkLabToPixel(
                         blendedOkLab, destinationPixel, allChannelsEnabled, params.channelFlags);
@@ -274,11 +276,26 @@ private:
         };
     }
 
-    static KoGamutMappingUtils::OkLch pixelToOkLch(const channels_type *pixel)
+    static Endpoint pixelToEndpoint(const channels_type *pixel)
     {
         const LinearSrgb linearSrgb = decodeToLinearSrgb(readEncodedSrgbU8(pixel));
-        return KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
-            cubeRootLmsToOkLab(linearSrgbToLms(linearSrgb)));
+        const QVector4D okLab = cubeRootLmsToOkLab(linearSrgbToLms(linearSrgb));
+        if constexpr (UseAntipodalHybrid) {
+            return KoOklchCompositeUtils::prepareAntipodalHybridEndpoint(okLab);
+        } else {
+            return KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(okLab);
+        }
+    }
+
+    static QVector4D interpolateEndpoints(const Endpoint &from,
+                                          const Endpoint &to,
+                                          float amount)
+    {
+        if constexpr (UseAntipodalHybrid) {
+            return KoOklchCompositeUtils::interpolateAntipodalHybrid(from, to, amount);
+        } else {
+            return KoGamutMappingUtils::interpolateOkLch(from, to, amount);
+        }
     }
 
     static void writeOkLabToPixel(const QVector4D &okLab,

@@ -20,14 +20,21 @@
 #include "KoCompositeOpOver.h"
 #include "KoCompositeOpOverOklchSrgbU8FastPath.h"
 
-template<class Traits>
+template<class Traits, bool UseAntipodalHybrid = false>
 class KoCompositeOpOverOklch : public KoCompositeOp
 {
     using channels_type = typename Traits::channels_type;
+    using Endpoint = std::conditional_t<UseAntipodalHybrid,
+                                        KoOklchCompositeUtils::AntipodalHybridEndpoint,
+                                        KoGamutMappingUtils::OkLch>;
 
 public:
     explicit KoCompositeOpOverOklch(const KoColorSpace *cs)
-        : KoCompositeOp(cs, COMPOSITE_OVER_OKLCH, KoCompositeOp::categoryOKLCH())
+        : KoCompositeOp(cs,
+                        UseAntipodalHybrid
+                            ? COMPOSITE_OVER_OKLCH_HYBRID
+                            : COMPOSITE_OVER_OKLCH,
+                        KoCompositeOp::categoryOKLCH())
         , m_srgbU8FastPathAvailable(SrgbU8FastPath::supportsColorSpace(cs))
         , m_conversionContexts(cs)
     {
@@ -88,7 +95,7 @@ public:
             return;
         }
 
-        KoGamutMappingUtils::OkLch constantSourceOkLch;
+        Endpoint constantSourceEndpoint;
         bool constantSourceConverted = false;
         const qint32 srcPixelIncrement = constantSource ? 0 : Traits::channels_nb;
 
@@ -157,7 +164,7 @@ public:
                     conversionContext->toXyz->transform(params.srcRowStart,
                                                         reinterpret_cast<quint8 *>(&constantSourceXyz),
                                                         1);
-                    constantSourceOkLch = KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
+                    constantSourceEndpoint = prepareEndpoint(
                         KoGamutMappingUtils::XYZToOkLab(toVector(constantSourceXyz)));
                     constantSourceConverted = true;
                 }
@@ -176,16 +183,16 @@ public:
                 activePixelCount);
 
             for (qint32 pixel = 0; pixel < activePixelCount; ++pixel) {
-                const KoGamutMappingUtils::OkLch from =
-                    KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
+                const Endpoint from = prepareEndpoint(
                     KoGamutMappingUtils::XYZToOkLab(toVector(conversionContext->dstXyz[pixel])));
-                const KoGamutMappingUtils::OkLch to = constantSource
-                    ? constantSourceOkLch
-                    : KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(
+                const Endpoint to = constantSource
+                    ? constantSourceEndpoint
+                    : prepareEndpoint(
                         KoGamutMappingUtils::XYZToOkLab(toVector(conversionContext->srcXyz[pixel])));
                 conversionContext->dstXyz[pixel] = fromVector(KoGamutMappingUtils::OkLabToXYZ(
-                    KoGamutMappingUtils::interpolateOkLch(
-                        from, to, conversionContext->perPixelValues[pixel])));
+                    interpolateEndpoints(from,
+                                         to,
+                                         conversionContext->perPixelValues[pixel])));
             }
 
             conversionContext->fromXyz->transform(
@@ -232,7 +239,27 @@ public:
 
 private:
     using ConversionContextStore = KoOklchConversionContextStore<Traits, float>;
-    using SrgbU8FastPath = KoCompositeOpOverOklchSrgbU8FastPath<Traits>;
+    using SrgbU8FastPath = KoCompositeOpOverOklchSrgbU8FastPath<Traits, UseAntipodalHybrid>;
+
+    static Endpoint prepareEndpoint(const QVector4D &okLab)
+    {
+        if constexpr (UseAntipodalHybrid) {
+            return KoOklchCompositeUtils::prepareAntipodalHybridEndpoint(okLab);
+        } else {
+            return KoOklchCompositeUtils::okLabToOkLchIgnoringProfileNoise(okLab);
+        }
+    }
+
+    static QVector4D interpolateEndpoints(const Endpoint &from,
+                                          const Endpoint &to,
+                                          float amount)
+    {
+        if constexpr (UseAntipodalHybrid) {
+            return KoOklchCompositeUtils::interpolateAntipodalHybrid(from, to, amount);
+        } else {
+            return KoGamutMappingUtils::interpolateOkLch(from, to, amount);
+        }
+    }
 
     static void clearColorChannels(channels_type *pixel)
     {

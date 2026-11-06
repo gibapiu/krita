@@ -21,6 +21,7 @@ class KoColorSpace;
 
 const QString COMPOSITE_OVER         = "normal";
 const QString COMPOSITE_OVER_OKLCH   = "normal_oklch";
+const QString COMPOSITE_OVER_OKLCH_HYBRID = "normal_oklch_hybrid";
 const QString COMPOSITE_ERASE        = "erase";
 const QString COMPOSITE_IN           = "in";
 const QString COMPOSITE_OUT          = "out";

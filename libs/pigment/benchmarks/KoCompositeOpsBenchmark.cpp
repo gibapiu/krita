@@ -104,6 +104,15 @@ void KoCompositeOpsBenchmark::benchmarkCompositeOverOklch()
     }
 }
 
+void KoCompositeOpsBenchmark::benchmarkCompositeOverOklchHybrid()
+{
+    KoCompositeOpOverOklch<KoBgrU8Traits, true> op(KoColorSpaceRegistry::instance()->rgb8());
+    KoCompositeOp *compositeOp = &op;
+    QBENCHMARK{
+        compositeImage(compositeOp, false);
+    }
+}
+
 void KoCompositeOpsBenchmark::benchmarkCompositeColorOklch()
 {
     KoCompositeOpColorOklch<KoBgrU8Traits> op(KoColorSpaceRegistry::instance()->rgb8());
@@ -147,46 +156,64 @@ void KoCompositeOpsBenchmark::benchmarkNormalOklchWorkloads_data()
         << COMPOSITE_OVER << int(RandomMask) << 0 << false << false;
     QTest::newRow("random-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(RandomMask) << 0 << false << false;
+    QTest::newRow("random-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(RandomMask) << 0 << false << false;
 
     QTest::newRow("opaque-mask-normal")
         << COMPOSITE_OVER << int(OpaqueMask) << 0 << false << false;
     QTest::newRow("opaque-mask-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(OpaqueMask) << 0 << false << false;
+    QTest::newRow("opaque-mask-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(OpaqueMask) << 0 << false << false;
 
     QTest::newRow("zero-mask-normal")
         << COMPOSITE_OVER << int(ZeroMask) << 0 << false << false;
     QTest::newRow("zero-mask-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(ZeroMask) << 0 << false << false;
+    QTest::newRow("zero-mask-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(ZeroMask) << 0 << false << false;
 
     QTest::newRow("distributed01-normal")
         << COMPOSITE_OVER << int(DistributedActivePixels) << 100 << false << false;
     QTest::newRow("distributed01-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(DistributedActivePixels) << 100 << false << false;
+    QTest::newRow("distributed01-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(DistributedActivePixels) << 100 << false << false;
 
     QTest::newRow("clustered01-normal")
         << COMPOSITE_OVER << int(ClusteredActivePixels) << 100 << false << false;
     QTest::newRow("clustered01-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(ClusteredActivePixels) << 100 << false << false;
+    QTest::newRow("clustered01-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(ClusteredActivePixels) << 100 << false << false;
 
     QTest::newRow("distributed10-normal")
         << COMPOSITE_OVER << int(DistributedActivePixels) << 10 << false << false;
     QTest::newRow("distributed10-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(DistributedActivePixels) << 10 << false << false;
+    QTest::newRow("distributed10-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(DistributedActivePixels) << 10 << false << false;
 
     QTest::newRow("distributed25-normal")
         << COMPOSITE_OVER << int(DistributedActivePixels) << 4 << false << false;
     QTest::newRow("distributed25-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(DistributedActivePixels) << 4 << false << false;
+    QTest::newRow("distributed25-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(DistributedActivePixels) << 4 << false << false;
 
     QTest::newRow("opaque-destination-normal")
         << COMPOSITE_OVER << int(RandomMask) << 0 << true << false;
     QTest::newRow("opaque-destination-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(RandomMask) << 0 << true << false;
+    QTest::newRow("opaque-destination-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(RandomMask) << 0 << true << false;
 
     QTest::newRow("constant-source-normal")
         << COMPOSITE_OVER << int(RandomMask) << 0 << false << true;
     QTest::newRow("constant-source-normal-oklch")
         << COMPOSITE_OVER_OKLCH << int(RandomMask) << 0 << false << true;
+    QTest::newRow("constant-source-normal-oklch-hybrid")
+        << COMPOSITE_OVER_OKLCH_HYBRID << int(RandomMask) << 0 << false << true;
 }
 
 void KoCompositeOpsBenchmark::benchmarkNormalOklchWorkloads()

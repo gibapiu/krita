@@ -184,6 +184,7 @@ KoCompositeOpRegistry::KoCompositeOpRegistry()
     m_map.insert(m_categories[11], KoID(COMPOSITE_INC_VALUE         ,  i18nc("Blending mode - Increase Value HSV", "Increase Value")));
     
     m_map.insert(m_categories[12], KoID(COMPOSITE_OVER_OKLCH, i18nc("Blending mode - Normal OKLCH", "Normal (OKLCH)")));
+    m_map.insert(m_categories[12], KoID(COMPOSITE_OVER_OKLCH_HYBRID, i18nc("Blending mode - Normal OKLCH Hybrid", "Normal (OKLCH Hybrid)")));
     m_map.insert(m_categories[12], KoID(COMPOSITE_COLOR_OKLCH, i18nc("Blending mode - Color OKLCH", "Color (OKLCH)")));
 
     m_map.insert(m_categories[13], KoID(COMPOSITE_REFLECT          ,  i18nc("Blending mode - Reflect", "Reflect")));
