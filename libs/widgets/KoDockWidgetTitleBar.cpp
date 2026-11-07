@@ -67,6 +67,10 @@ KoDockWidgetTitleBar::KoDockWidgetTitleBar(QDockWidget* dockWidget)
     d->titleLabel->setTextElideMode(Qt::ElideRight);
     d->titleLabel->setText(dockWidget->windowTitle());
 
+    QSizePolicy sizePolicy =  d->titleLabel->sizePolicy();
+    sizePolicy.setVerticalPolicy(QSizePolicy::Ignored);
+    d->titleLabel->setSizePolicy(sizePolicy);
+
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(2, 0, 2, 0);
     layout->setSpacing(SPACING);
@@ -231,15 +235,56 @@ void KoDockWidgetTitleBar::Private::updateButtonSizes()
     QSize buttonSize = closeRect.size();
     if (buttonSize.width() < 16) {
         // To improve the look with Fusion which has weird 13x15 button sizes
-        buttonSize = QSize(16, 16);
+        buttonSize = QSize(16, 16 * int(thePublic->isVisible()));
     } else if (buttonSize.width() != buttonSize.height()) {
         // Just make sure the button is square...
-        buttonSize.setHeight(buttonSize.width());
+        buttonSize.setHeight(buttonSize.width()* int(thePublic->isVisible()));
     }
 
     floatButton->setFixedSize(buttonSize);
     closeButton->setFixedSize(buttonSize);
     lockButton->setFixedSize(buttonSize);
+}
+
+void KoDockWidgetTitleBar::hideEvent(QHideEvent *event){
+    Q_UNUSED(event);
+    d->updateButtonSizes();
+
+    /**
+     * On Qt6 QDockWidget will read the size hint of the titlebar
+     * before it is actually made visible, so we should force
+     * it to recalcualate, when visibility (and hence size-hint)
+     * is changed
+     */
+    if (parentWidget() && parentWidget()->layout()) {
+        parentWidget()->layout()->update();
+    }
+}
+
+void KoDockWidgetTitleBar::showEvent(QShowEvent *event){
+    Q_UNUSED(event);
+    d->updateButtonSizes();
+    d->closeButton->setVisible(true);
+
+    /**
+     * On Qt6 QDockWidget will read the size hint of the titlebar
+     * before it is actually made visible, so we should force
+     * it to recalcualate, when visibility (and hence size-hint)
+     * is changed
+     */
+    if (parentWidget() && parentWidget()->layout()) {
+        parentWidget()->layout()->update();
+    }
+}
+
+QSize KoDockWidgetTitleBar::sizeHint() const
+{
+    /**
+     * On Qt6 QDockWidget reserves space for the titlebar
+     * purely on its size hint, ignoring its visiblity, so
+     * we should account for that in the size hint itself
+     */
+    return isVisible() ? QWidget::sizeHint() : QSize();
 }
 
 //have to include this because of Q_PRIVATE_SLOT

@@ -2491,17 +2491,12 @@ QDockWidget* KisMainWindow::createDockWidget(KoDockFactoryBase* factory)
         }
 
         if (dockWidget->titleBarWidget() && !dockWidget->titleBarWidget()->inherits("KisUtilityTitleBar")) {
-            dockWidget->titleBarWidget()->setVisible(KisConfig(true).showDockerTitleBars());
+            dockWidget->titleBarWidget()->setVisible(showTitlebars);
         }
 
         dockWidget->setObjectName(factory->id());
         dockWidget->setParent(this);
-        if (!showTitlebars) {
-            if (dockWidget->titleBarWidget() && !dockWidget->titleBarWidget()->inherits("KisUtilityTitleBar")) {
-                dockWidget->titleBarWidget()->setVisible(false);
-            }
-            dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
-        }
+
         if (dockWidget->widget() && dockWidget->widget()->layout())
             dockWidget->widget()->layout()->setContentsMargins(1, 1, 1, 1);
 
@@ -2781,6 +2776,7 @@ void KisMainWindow::updateWindowMenu()
 
     connect(workspaceMenu->addAction(i18nc("@action:inmenu", "&New Workspace...")),
             &QAction::triggered,
+            this,
             [=]() {
         QString name;
         name = QInputDialog::getText(this, i18nc("@title:window", "New Workspace..."),

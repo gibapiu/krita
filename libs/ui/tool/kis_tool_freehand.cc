@@ -387,7 +387,7 @@ void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
 
 bool KisToolFreehand::trySampleByPaintOp(KoPointerEvent *event, AlternateAction action)
 {
-    if (action != SampleFgNode && action != SampleFgImage) return false;
+    if (action != SampleFgNode && action != SampleFgGroup && action != SampleFgImage) return false;
 
     /**
      * FIXME: we need some better way to implement modifiers
@@ -591,11 +591,13 @@ QPointF KisToolFreehand::adjustPosition(const QPointF& point, const QPointF& str
 qreal KisToolFreehand::calculatePerspective(const QPointF &documentPoint)
 {
     qreal perspective = 1.0;
+    int bestPriority = std::numeric_limits<int>::min();
     Q_FOREACH (const KisPaintingAssistantSP assistant, static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()->assistants()) {
         QPointer<KisAbstractPerspectiveGrid> grid = dynamic_cast<KisAbstractPerspectiveGrid*>(assistant.data());
-        if (grid && grid->isActive() && grid->contains(documentPoint)) {
+        if (grid && grid->isActive() && grid->contains(documentPoint) &&
+            assistant->brushPriority() > bestPriority) {
             perspective = grid->distance(documentPoint);
-            break;
+            bestPriority = assistant->brushPriority();
         }
     }
     return perspective;

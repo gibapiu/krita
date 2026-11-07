@@ -35,6 +35,7 @@ public:
 
 private Q_SLOTS:
     void onMainWindowIsBeingCreated(KisMainWindow *window);
+    void onThemeChanged();
 
     void onRecordIsolateLayerModeToggled(bool checked);
     void onAutoRecordToggled(bool checked);
@@ -49,6 +50,7 @@ private Q_SLOTS:
     void slotSelectSnapshotDirectory();
     bool onRecordButtonToggled(bool checked);
     void onExportButtonClicked();
+    void onFocusedCaptureToggled(bool checked);
 
     void onWriterStarted();
     void onWriterStopped();
@@ -61,6 +63,8 @@ private Q_SLOTS:
     void onWarningTimeout();
 
     void slotScrollerStateChanged(QScroller::State state);
+
+    void onDocumentAboutToClose(KoCanvasBase* canvas);
 
 #ifdef Q_OS_ANDROID
     void moveFilesFromInternalSnapshotDirectory();

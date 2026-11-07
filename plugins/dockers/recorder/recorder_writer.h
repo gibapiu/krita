@@ -10,9 +10,10 @@
 #include "kis_types.h"
 #include "recorder_format.h"
 
+#include <QMutex>
 #include <QObject>
 #include <QPointer>
-#include <QMutex>
+#include <kis_paint_device.h>
 
 struct RecorderExportSettings;
 class RecorderConfig;
@@ -29,6 +30,7 @@ struct RecorderWriterSettings
     double captureInterval;
     bool recordIsolateLayerMode;
     bool realTimeCaptureMode;
+    bool focusedRecord;
 };
 
 // This class is used to provide mechanism ro sync the number of available
@@ -89,7 +91,10 @@ Q_SIGNALS:
     void capturingDone(int writerId, bool success);
 
 public Q_SLOTS:
-    void onCaptureImage(int writerId, int index, KisPaintDeviceSP device);
+    void onCaptureImage(int index, QVector<QRect> regions, KisPaintDeviceSP device);
+
+private:
+    bool onCaptureImageImpl(int index, QRect region, KisPaintDevice* device);
 
 private:
     class Private;
@@ -115,10 +120,37 @@ public:
     // restarts recorder
     void setup(const RecorderWriterSettings &settings);
 
-    void start(bool toggleEnabled = true);
-    bool stop(bool toggleEnabled = true);
+    void start(bool toggleEnabled, bool restoreState);
+    bool stop(bool toggleEnabled, bool saveState);
 
     void setEnabled(bool enabled);
+
+    ///Generate a tail and save the recording region
+    void saveState();
+    ///Remove the tail and restore region from a file
+    void restoreState();
+
+    // A note about tail frames:
+    // They are needed for focused recording. It is possible that the recording is stopped with the last frame being
+    // very zoomed in, so if a user tries to export the timelapse in this state, it won't properly dispaly the resulting
+    // artwork. One option to fix that is to capture an overview frame whenever a timelapse is epxorted, but the artwork
+    // may have changed while recording was off, so we can't do that
+    //
+    // My solution is a "tail" frame, an overivew captured whenever recording is stopped, and removed if recording is
+    // resumed, to avoid adding dead air to timelapses.
+    //
+    // To avoid big jumps we capture multiple of them with interpolated motion with the last frame, like any other
+    // frame.
+    //
+    // They are technically not needed if the user isn't using focused recording, but they don't hurt to have.
+
+    // Saving the oldRegion varaible, for smooth frame motion, it is very cheap to do as it's literally just 16 bytes,
+    // so we're free to do it excessively without worrying. We also use it to keep track of the region with multiple
+    // files open, instead of doing that with some global state
+    void saveRegion();
+    void tryRestoreRegion();
+
+    bool canStartCapture() const;
 
 Q_SIGNALS:
     void started();
@@ -126,8 +158,6 @@ Q_SIGNALS:
     void frameWriteFailed();
     void lowPerformanceWarning();
     void recorderStopWarning();
-
-    void startCapturing(int writerId, int index, KisPaintDeviceSP device);
 
 private Q_SLOTS:
     void onTimer();

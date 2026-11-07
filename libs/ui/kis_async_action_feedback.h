@@ -14,7 +14,7 @@
 class QWidget;
 class QMutex;
 
-class KisAsyncActionFeedback
+class KRITAUI_EXPORT KisAsyncActionFeedback
 {
 private:
     struct DefaultWaitingMessageCallback {
@@ -26,6 +26,7 @@ public:
     ~KisAsyncActionFeedback();
 
     KisImportExportErrorCode runAction(std::function<KisImportExportErrorCode()> func);
+    bool runAction(std::function<bool()> func);
     void runVoidAction(std::function<void()> func);
 
     template <typename Mutex>

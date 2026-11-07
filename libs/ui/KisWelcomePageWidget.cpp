@@ -169,6 +169,10 @@ KisWelcomePageWidget::KisWelcomePageWidget(QWidget *parent)
 
     labelSupportText->setFont(largerFont());
 
+    connect(btnDismisAll, SIGNAL(clicked()), newsWidget, SLOT(dismissAll()));
+    connect(newsWidget, SIGNAL(newsStateChanged(bool)), this, SLOT(newsStateChanged(bool)));
+    newsStateChanged(false);
+
     connect(showNewsAction, SIGNAL(toggled(bool)), newsWidget, SLOT(setVisible(bool)));
     connect(showNewsAction, SIGNAL(toggled(bool)), labelNoFeed, SLOT(setHidden(bool)));
     connect(showNewsAction, SIGNAL(toggled(bool)), newsWidget, SLOT(toggleNews(bool)));
@@ -266,7 +270,7 @@ void KisWelcomePageWidget::setMainWindow(KisMainWindow* mainWin)
         slotUpdateThemeColors();
 
         // allows RSS news items to apply analytics tracking.
-        newsWidget->setAnalyticsTracking("?" + analyticsString);
+        Q_EMIT newsWidget->setAnalyticsTracking("?" + analyticsString);
 
         KisRecentDocumentsModelWrapper *recentFilesModel = KisRecentDocumentsModelWrapper::instance();
         connect(recentFilesModel, SIGNAL(sigModelIsUpToDate()), this, SLOT(slotRecentFilesModelIsUpToDate()));
@@ -337,6 +341,8 @@ void KisWelcomePageWidget::slotUpdateThemeColors()
 
     btnNewsOptions->setIcon(KisIconUtils::loadIcon("view-choose"));
     btnNewsOptions->setFlat(true);
+
+    notifyIcon->setIcon(KisIconUtils::loadIcon("notification-dot"));
 
     supportKritaIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("support-krita")));
     userManualIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("help-contents")));
@@ -574,7 +580,7 @@ void KisWelcomePageWidget::setupNewsLangSelection(QMenu *newsOptionsMenu)
 
         // Connect this lambda after setting the initial checked state because
         // we don't want to overwrite the config when doing the initial setup.
-        connect(langItem, &QAction::toggled, [=](bool checked) {
+        connect(langItem, &QAction::toggled, qApp, [=](bool checked) {
             KisConfig cfg(false);
             // It is safe to modify `enabledNewsLangs` here, because the slots
             // are called synchronously on the UI thread so there is no need
@@ -1018,4 +1024,24 @@ void KisWelcomePageWidget::recentFilesResized()
     int length = floor(currentSize / iconAmount)-spacing;
 
     recentDocumentsListView->setIconSize(QSize(length,length));
+}
+
+void KisWelcomePageWidget::newsStateChanged(bool hasNews)
+{
+    btnDismisAll->setVisible(hasNews);
+    notifyIcon->setVisible(hasNews);
+
+
+    //colapse or expand notifyIcon and btnDismisAll
+
+    QSizePolicy sizePolicy = notifyIcon->sizePolicy();
+    if (hasNews) {
+        sizePolicy.setHorizontalPolicy(QSizePolicy::Preferred);
+    } else {
+        sizePolicy.setHorizontalPolicy(QSizePolicy::Ignored);
+    }
+    notifyIcon->setSizePolicy(sizePolicy);
+
+    //notifyIcon and btnDismisAll should both have the same size policy
+    btnDismisAll->setSizePolicy(sizePolicy);
 }

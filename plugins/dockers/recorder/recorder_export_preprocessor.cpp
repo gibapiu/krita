@@ -9,10 +9,14 @@
 #include "recorder_format.h"
 #include <QRegularExpression>
 #include <algorithm>
+#include <QRegion>
+#include <KSharedConfig>
+#include <KConfigGroup>
 
 struct RecorderExportPreprocessor::Private {
     QDir directory;
     RecorderFormat format;
+    QStringList tails;
 
     Private(QDir directory, RecorderFormat format)
         : directory(directory)
@@ -22,6 +26,24 @@ struct RecorderExportPreprocessor::Private {
 
     ~Private()
     {
+    }
+
+    void getTail()
+    {
+        auto config = KSharedConfig ::openConfig(directory.filePath(RecorderConst::recorderMetaDataName));
+        KConfigGroup cfg = KConfigGroup(config, "");
+
+        tails = cfg.readEntry("tails", QStringList());
+    }
+
+    void saveTail()
+    {
+        auto config = KSharedConfig ::openConfig(directory.filePath(RecorderConst::recorderMetaDataName));
+        KConfigGroup cfg = KConfigGroup(config, "");
+
+        cfg.writeEntry("tails", tails);
+
+        tails.clear();
     }
 };
 
@@ -46,6 +68,8 @@ void RecorderExportPreprocessor::doPreprocessing()
     if (!d->directory.exists()) {
         return;
     }
+
+    d->getTail();
 
     QStringList fileNames = d->directory.entryList({"*." % RecorderFormatInfo::fileExtension(d->format)});
 
@@ -86,6 +110,8 @@ void RecorderExportPreprocessor::doPreprocessing()
     }
 
     int offset = 0;
+    QStringList new_tails  = d->tails;
+
     for (auto it = indecies.begin(); it != indecies.end(); ++it) {
         int ind = *it;
 
@@ -101,7 +127,17 @@ void RecorderExportPreprocessor::doPreprocessing()
         QString newName = QString("%2.%3").arg(QString("%1").arg(ind - offset, 7, 10, QLatin1Char('0')),
                                                RecorderFormatInfo::fileExtension(d->format));
 
+        int tailIndex = d->tails.indexOf(oldName);
+        if (tailIndex != -1) {
+            new_tails[tailIndex] = newName;
+        }
+
         // Hopefully nothing should go wrong
         d->directory.rename(oldName, newName);
+    }
+
+    if (d->tails != new_tails) {
+        d->tails = new_tails;
+        d->saveTail();
     }
 }

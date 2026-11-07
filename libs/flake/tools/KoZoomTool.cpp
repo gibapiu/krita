@@ -9,6 +9,9 @@
 #include "KoZoomTool.h"
 
 #include <QKeyEvent>
+#include <QIcon>
+#include <QPixmap>
+#include <QWidget>
 
 #include "KoZoomStrategy.h"
 #include "KoZoomToolWidget.h"

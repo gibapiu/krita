@@ -19,8 +19,8 @@ public:
 
     void updateSettings(QDir directory, RecorderFormat format);
 
+    /// Checks if there are no holes in the frames, and shifts the files to fill them
     void doPreprocessing();
-
 private:
     struct Private;
     QScopedPointer<Private> d;

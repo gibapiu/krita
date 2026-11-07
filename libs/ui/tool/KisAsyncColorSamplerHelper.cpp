@@ -52,7 +52,7 @@ struct KisAsyncColorSamplerHelper::Private
     KisCanvas2 *canvas;
 
     int sampleResourceId {0};
-    bool sampleCurrentLayer {true};
+    KisToolUtils::ColorSamplerSource sampleSource {KisToolUtils::SampleSourceImage};
     bool updateGlobalColor {true};
 
     bool isActive {false};
@@ -301,7 +301,7 @@ bool KisAsyncColorSamplerHelper::isActive() const
     return m_d->isActive;
 }
 
-void KisAsyncColorSamplerHelper::activate(bool sampleCurrentLayer, bool pickFgColor)
+void KisAsyncColorSamplerHelper::activate(KisToolUtils::ColorSamplerSource sampleSource, bool pickFgColor)
 {
 
     KIS_SAFE_ASSERT_RECOVER_RETURN(!m_d->isActive);
@@ -312,9 +312,8 @@ void KisAsyncColorSamplerHelper::activate(bool sampleCurrentLayer, bool pickFgCo
             KoCanvasResource::ForegroundColor :
             KoCanvasResource::BackgroundColor;
 
-    m_d->sampleCurrentLayer = sampleCurrentLayer;
+    m_d->sampleSource = sampleSource;
     m_d->haveSample = false;
-
 
     KisConfig cfg(true);
     m_d->style = cfg.colorSamplerPreviewStyle();
@@ -356,10 +355,10 @@ void KisAsyncColorSamplerHelper::activatePreview()
     m_d->baseColor = previewColor;
     m_d->cache = QPixmap();
 
-    updateCursor(m_d->sampleCurrentLayer, m_d->sampleResourceId == KoCanvasResource::ForegroundColor);
+    updateCursor(m_d->sampleSource, m_d->sampleResourceId == KoCanvasResource::ForegroundColor);
 }
 
-void KisAsyncColorSamplerHelper::updateCursor(bool sampleCurrentLayer, bool pickFgColor)
+void KisAsyncColorSamplerHelper::updateCursor(KisToolUtils::ColorSamplerSource sampleSource, bool pickFgColor)
 {
     const int sampleResourceId =
             pickFgColor ?
@@ -368,18 +367,29 @@ void KisAsyncColorSamplerHelper::updateCursor(bool sampleCurrentLayer, bool pick
 
     QCursor cursor;
 
-    if (sampleCurrentLayer) {
+    switch (sampleSource) {
+    case KisToolUtils::SampleSourceGroup:
+        if (sampleResourceId == KoCanvasResource::ForegroundColor) {
+            cursor = KisCursor::samplerGroupForegroundCursor();
+        } else {
+            cursor = KisCursor::samplerGroupBackgroundCursor();
+        }
+        break;
+    case KisToolUtils::SampleSourceNode:
         if (sampleResourceId == KoCanvasResource::ForegroundColor) {
             cursor = KisCursor::samplerLayerForegroundCursor();
         } else {
             cursor = KisCursor::samplerLayerBackgroundCursor();
         }
-    } else {
+        break;
+    case KisToolUtils::SampleSourceImage:
+    default:
         if (sampleResourceId == KoCanvasResource::ForegroundColor) {
             cursor = KisCursor::samplerImageForegroundCursor();
         } else {
             cursor = KisCursor::samplerImageBackgroundCursor();
         }
+        break;
     }
 
     Q_EMIT sigRequestCursor(cursor);
@@ -851,7 +861,7 @@ void KisAsyncColorSamplerHelper::slotAddSamplingJob(const QPointF &docPoint)
     KisImageSP image = m_d->canvas->image();
     const QPoint imagePoint = image->documentToImagePixelFloored(docPoint);
 
-    if (!m_d->sampleCurrentLayer) {
+    if (m_d->sampleSource == KisToolUtils::SampleSourceImage) {
         KisSharedPtr<KisReferenceImagesLayer> referencesLayer = m_d->canvas->imageView()->document()->referenceImagesLayer();
         if (referencesLayer && m_d->canvas->referenceImagesDecoration()->visible()) {
             KoColor color = referencesLayer->getPixelForDocPoint(docPoint);
@@ -862,9 +872,20 @@ void KisAsyncColorSamplerHelper::slotAddSamplingJob(const QPointF &docPoint)
         }
     }
 
-    KisPaintDeviceSP device = m_d->sampleCurrentLayer ?
-        m_d->canvas->imageView()->currentNode()->colorSampleSourceDevice() :
-        image->projection();
+    KisPaintDeviceSP device;
+
+    switch (m_d->sampleSource) {
+    case KisToolUtils::SampleSourceGroup:
+         device = m_d->canvas->imageView()->currentNode()->parent()->colorSampleSourceDevice();
+        break;
+    case KisToolUtils::SampleSourceNode:
+        device = m_d->canvas->imageView()->currentNode()->colorSampleSourceDevice();
+        break;
+    case KisToolUtils::SampleSourceImage:
+    default:
+        device = image->projection();
+        break;
+    }
 
     if (device) {
         // Used for color sampler blending.

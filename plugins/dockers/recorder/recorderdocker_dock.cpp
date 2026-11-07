@@ -16,6 +16,9 @@
 #include "recorder_export_config.h"
 
 #include <klocalizedstring.h>
+#include <kactioncollection.h>
+#include "kcolorscheme.h"
+
 #include <kis_action_registry.h>
 #include <kis_canvas2.h>
 #include <kis_icon_utils.h>
@@ -23,7 +26,6 @@
 #include <KisDocument.h>
 #include <KisViewManager.h>
 #include <KoDocumentInfo.h>
-#include <kactioncollection.h>
 #include <KisPart.h>
 #include <KisKineticScroller.h>
 #include "KisMainWindow.h"
@@ -46,18 +48,33 @@ namespace
 const QString keyActionRecordToggle = "recorder_record_toggle";
 const QString keyActionExport = "recorder_export";
 
-const QString activeColorGreen(" color='#5cab25'");
-const QString inactiveColorGreen(" color='#b4e196'");
-const QString activeColorOrange(" color='#ca8f14'");
-const QString inactiveColorOrange(" color='#ffe5af'");
-const QString activeColorRed(" color='#da4453'");
-const QString inactiveColorRed(" color='#f2c4c9'");
-const QString inactiveColorGray(" color='#3e3e3e'");
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+QString activeColorPositive;
+QString activeColorNeutral;
+QString activeColorNegative;
+QString colorNormal;
+QString inactiveColorPositive;
+QString inactiveColorNeutral;
+QString inactiveColorNegative;
 
-const QColor textColorOrange(0xff, 0xe5, 0xaf);
-const QColor buttonColorOrange(0xca, 0x8f, 0x14);
-const QColor textColorRed(0xf2, 0xc4, 0xc9);
-const QColor buttonColorRed(0xda, 0x44, 0x53);
+QColor textColorNeutral;
+QColor buttonColorNeutral;
+QColor textColorNegative;
+QColor buttonColorNegative;
+#else
+const QString activeColorPositive("#5cab25");
+const QString activeColorNeutral("#ca8f14");
+const QString activeColorNegative("#da4453");
+const QString colorNormal("#3e3e3e");
+const QString inactiveColorPositive("#b4e196");
+const QString inactiveColorNeutral("#ffe5af");
+const QString inactiveColorNegative("#f2c4c9");
+
+const QColor textColorNeutral(0xff, 0xe5, 0xaf);
+const QColor buttonColorNeutral(0xca, 0x8f, 0x14);
+const QColor textColorNegative(0xf2, 0xc4, 0xc9);
+const QColor buttonColorNegative(0xda, 0x44, 0x53);
+#endif
 
 }
 
@@ -86,6 +103,8 @@ public:
     bool realTimeCaptureMode = false;
     bool recordIsolateLayerMode = false;
     bool recordAutomatically = false;
+    bool focusedRecord = false;
+
     bool paused = true;
 #ifdef Q_OS_ANDROID
     bool internalMoveInProgress{false};
@@ -147,6 +166,7 @@ public:
         }
         recordIsolateLayerMode = config.recordIsolateLayerMode();
         recordAutomatically = config.recordAutomatically();
+        focusedRecord = config.focusedRecord();
 
         updateUiFormat();
     }
@@ -244,7 +264,8 @@ public:
             resolution,
             captureInterval,
             recordIsolateLayerMode,
-            realTimeCaptureMode});
+            realTimeCaptureMode,
+            focusedRecord});
     }
 
     QString getPrefix()
@@ -277,10 +298,10 @@ public:
 
     void updateRecordStatus(bool isRecording)
     {
+        QSignalBlocker blocker(ui->buttonRecordToggle);
         recordToggleAction->setChecked(isRecording);
         recordToggleAction->setEnabled(true);
 
-        QSignalBlocker blocker(ui->buttonRecordToggle);
         ui->buttonRecordToggle->setChecked(isRecording);
         ui->buttonRecordToggle->setIcon(KisIconUtils::loadIcon(isRecording ? "media-playback-stop" : "media-record"));
         ui->buttonRecordToggle->setText(isRecording ? i18nc("Stop recording the canvas", "Stop")
@@ -313,33 +334,27 @@ public:
 
     void updateRecIndicator()
     {
-        auto threads = writer.recorderThreads.get();
-        auto threadsInUse = writer.recorderThreads.getUsed();
+        uint threads = writer.recorderThreads.get();
+        uint threadsInUse = writer.recorderThreads.getUsed();
         QString label("<font style='letter-spacing:-4px'>");
-        QString activeColor;
-        QString inactiveColor;
+        QString threadColor;
         for (unsigned int threadNr = 1; threadNr <= ThreadSystemValue::MaxThreadCount ; threadNr++)
         {
             if (threadNr > threads) {
-                activeColor = inactiveColorGray;
-                inactiveColor = inactiveColorGray;
+                threadColor = colorNormal;
             } else if (threadNr > ThreadSystemValue::MaxRecordThreadCount) {
-                activeColor = activeColorRed;
-                inactiveColor = inactiveColorRed;
+                threadColor = threadNr <= threadsInUse ? activeColorNegative : inactiveColorNegative;
             } else if (threadNr > ThreadSystemValue::IdealRecordThreadCount) {
-                activeColor = activeColorOrange;
-                inactiveColor = inactiveColorOrange;
+                threadColor = threadNr <= threadsInUse ? activeColorNeutral : inactiveColorNeutral;
             } else {
-                activeColor = activeColorGreen;
-                inactiveColor = inactiveColorGreen;
+                threadColor = threadNr <= threadsInUse ? activeColorPositive : inactiveColorPositive;
             }
-            label.append(QString("<font%1>▍</font>")
-                             .arg(threadNr <= threadsInUse ? activeColor : inactiveColor));
+            label.append(QString("<font color='%1'>▍</font>").arg(threadColor));
         }
         // don't remove empty <font></font> tag else label will jump a few pixels around
-        label.append(QString("</font><font> %1 </font><font%2>●</font>")
+        label.append(QString("</font><font> %1 </font><font color='%2'>●</font>")
                          .arg(i18nc("Recording symbol", "REC"))
-                         .arg(paused ? "" : activeColorRed));
+                         .arg(paused ? "" : activeColorNegative));
         statusBarLabel->setText(label);
         statusBarLabel->setToolTip(paused ? i18n("Recorder is paused") : QString(i18n("Active recording with %1 of %2 available threads")).arg(threadsInUse).arg(threads));
     }
@@ -360,8 +375,8 @@ public:
             // Number of threads exceeds ideal thread count
             // -> switch color of threads slider and spin wheel to red
             QPalette pal;
-            pal.setColor(QPalette::Text, textColorRed);
-            pal.setColor(QPalette::Button, buttonColorRed);
+            pal.setColor(QPalette::Text, textColorNegative);
+            pal.setColor(QPalette::Button, buttonColorNegative);
             ui->spinThreads->setPalette(pal);
             ui->sliderThreads->setPalette(pal);
             toolTipText = QString(
@@ -371,8 +386,8 @@ public:
             // Number of threads exceeds ideal recorder thread count
             // -> switch color of threads slider and spin wheel to orange
             QPalette pal;
-            pal.setColor(QPalette::Text, textColorOrange);
-            pal.setColor(QPalette::Button, buttonColorOrange);
+            pal.setColor(QPalette::Text, textColorNeutral);
+            pal.setColor(QPalette::Button, buttonColorNeutral);
             ui->spinThreads->setPalette(pal);
             ui->sliderThreads->setPalette(pal);
             toolTipText = QString(
@@ -417,7 +432,7 @@ RecorderDockerDock::RecorderDockerDock()
     d->ui->buttonManageRecordings->setIcon(KisIconUtils::loadIcon("configure-thicker"));
     d->ui->buttonBrowse->setIcon(KisIconUtils::loadIcon("folder"));
     d->ui->buttonRecordToggle->setIcon(KisIconUtils::loadIcon("media-record"));
-    d->ui->buttonExport->setIcon(KisIconUtils::loadIcon("document-export-16"));
+    d->ui->buttonExport->setIcon(KisIconUtils::loadIcon("export-timelapse"));
     d->ui->sliderThreads->setTickPosition(QSlider::TickPosition::TicksBelow);
     d->ui->sliderThreads->setMinimum(1);
     d->ui->sliderThreads->setMaximum(ThreadSystemValue::MaxThreadCount);
@@ -437,6 +452,7 @@ RecorderDockerDock::RecorderDockerDock()
     d->ui->checkBoxRealTimeCaptureMode->setChecked(d->realTimeCaptureMode);
     d->ui->checkBoxRecordIsolateMode->setChecked(d->recordIsolateLayerMode);
     d->ui->checkBoxAutoRecord->setChecked(d->recordAutomatically);
+    d->ui->checkBoxFocusedRecord->setChecked(d->focusedRecord);
 
     KisActionRegistry *actionRegistry = KisActionRegistry::instance();
     d->recordToggleAction = actionRegistry->makeQAction(keyActionRecordToggle, this);
@@ -464,6 +480,8 @@ RecorderDockerDock::RecorderDockerDock()
     connect(d->ui->checkBoxAutoRecord, SIGNAL(toggled(bool)), this, SLOT(onAutoRecordToggled(bool)));
     connect(d->ui->buttonRecordToggle, SIGNAL(toggled(bool)), this, SLOT(onRecordButtonToggled(bool)));
     connect(d->ui->buttonExport, SIGNAL(clicked()), this, SLOT(onExportButtonClicked()));
+
+    connect(d->ui->checkBoxFocusedRecord, SIGNAL(toggled(bool)), this, SLOT(onFocusedCaptureToggled(bool)));
 
     connect(&d->writer.recorderThreads, SIGNAL(notifyInUseChange(bool)), this, SLOT(onActiveRecording(bool)));
     connect(&d->writer.recorderThreads, SIGNAL(notifyInUseChange(bool)), this, SLOT(onUpdateRecIndicator()));
@@ -498,7 +516,30 @@ RecorderDockerDock::~RecorderDockerDock()
     delete exportSettings;
 }
 
-void RecorderDockerDock::setCanvas(KoCanvasBase* canvas)
+// This signal is called when the last view of a document is closed. We can use it to properly stop recording for that
+// document and create tail frame(s), knowing that it won't be called too often. Creating tail frames can be very
+// expensive, depending on how zoomed in the user is, so doing that overzealously is unviable.
+void RecorderDockerDock::onDocumentAboutToClose(KoCanvasBase *canvas)
+{
+    KisCanvas2 *cptr = dynamic_cast<KisCanvas2 *>(canvas);
+
+    KisCanvas2 *oldCanvas = nullptr;
+    if (d->canvas != cptr) {
+        oldCanvas = d->canvas;
+        setCanvas(canvas);
+    }
+
+    d->writer.stop(false, true);
+
+    if (oldCanvas) {
+        setCanvas((KoCanvasBase *)oldCanvas);
+        d->writer.start(false, false);
+    }
+}
+
+// This is called whenever a tab is switched, be that when a user clicks on a tab, or another tab closing, so we only do
+// basic recorder state save. We can not rely on this function to create tail frames, as it's called too often
+void RecorderDockerDock::setCanvas(KoCanvasBase *canvas)
 {
     setEnabled(canvas != nullptr);
 
@@ -510,6 +551,12 @@ void RecorderDockerDock::setCanvas(KoCanvasBase* canvas)
 
     if (!d->canvas)
         return;
+
+    connect(d->canvas->imageView(),
+            SIGNAL(sigDocumentAboutToClose(KoCanvasBase *)),
+            this,
+            SLOT(onDocumentAboutToClose(KoCanvasBase *)),
+            Qt::UniqueConnection);
 
     KisDocument *document = d->canvas->imageView()->document();
     d->updateComboResolution(document->image()->width(), document->image()->height());
@@ -531,12 +578,13 @@ void RecorderDockerDock::setCanvas(KoCanvasBase* canvas)
     d->updateRecordStatus(enabled);
 }
 
+// This function is only called when the last document/canvas is closed, in all other cases setCanvas is called instead.
 void RecorderDockerDock::unsetCanvas()
 {
     d->updateRecordStatus(false);
     d->recordToggleAction->setChecked(false);
     setEnabled(false);
-    d->writer.stop();
+    d->writer.stop(true, false);
     d->writer.setCanvas(nullptr);
     d->canvas = nullptr;
     d->enabledIds.clear();
@@ -547,6 +595,35 @@ void RecorderDockerDock::onMainWindowIsBeingCreated(KisMainWindow *window)
     KisKActionCollection *actionCollection = window->viewManager()->actionCollection();
     actionCollection->addAction(keyActionRecordToggle, d->recordToggleAction);
     actionCollection->addAction(keyActionExport, d->exportAction);
+
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+    connect(window, SIGNAL(themeChanged()), this, SLOT(onThemeChanged()));
+    onThemeChanged();
+#endif
+}
+
+void RecorderDockerDock::onThemeChanged()
+{
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+    KColorScheme activeScheme(QPalette::Active, KColorScheme::Window);
+    activeColorPositive = activeScheme.foreground(KColorScheme::PositiveText).color().name();
+    activeColorNeutral = activeScheme.foreground(KColorScheme::NeutralText).color().name();
+    activeColorNegative = activeScheme.foreground(KColorScheme::NegativeText).color().name();
+
+    KColorScheme disabledScheme(QPalette::Disabled, KColorScheme::Window);
+    inactiveColorPositive = disabledScheme.foreground(KColorScheme::PositiveText).color().name();
+    inactiveColorNeutral = disabledScheme.foreground(KColorScheme::NeutralText).color().name();
+    inactiveColorNegative = disabledScheme.foreground(KColorScheme::NegativeText).color().name();
+    colorNormal = disabledScheme.foreground(KColorScheme::NormalText).color().name();
+
+    textColorNeutral = activeScheme.foreground(KColorScheme::NeutralText).color();
+    buttonColorNeutral = activeScheme.background(KColorScheme::NeutralBackground).color();
+    textColorNegative = activeScheme.foreground(KColorScheme::NegativeText).color();
+    buttonColorNegative = activeScheme.background(KColorScheme::NegativeBackground).color();
+
+    d->updateThreadUi();
+    d->updateRecIndicator();
+#endif
 }
 
 bool RecorderDockerDock::onRecordButtonToggled(bool checked)
@@ -567,8 +644,9 @@ bool RecorderDockerDock::onRecordButtonToggled(bool checked)
 
     d->recordToggleAction->setChecked(checked);
 
-    if (!d->canvas)
+    if (!d->canvas) {
         return false;
+    }
 
     const QString &id = d->canvas->imageView()->document()->linkedResourcesStorageId();
 
@@ -582,16 +660,21 @@ bool RecorderDockerDock::onRecordButtonToggled(bool checked)
 
     if (isEmpty == wasEmpty) {
         d->updateRecordStatus(checked);
+        if (checked) {
+            d->updateWriterSettings();
+            d->writer.restoreState();
+        } else {
+            d->writer.saveState();
+        }
         return false;
     }
-
 
     d->ui->buttonRecordToggle->setEnabled(false);
 
     if (checked) {
         d->updateWriterSettings();
         d->updateUiFormat();
-        d->writer.start();
+        d->writer.start(true, true);
 
         // Calculate Rec symbol activity timeout depending on the capture interval
         // The pausedTimer interval is set to a slightly greater value than the capture interval
@@ -603,7 +686,7 @@ bool RecorderDockerDock::onRecordButtonToggled(bool checked)
             d->pausedTimer.setInterval(qBound(305, static_cast<int>(qMax(d->captureInterval, .1) * 1000.0) + 5, 2005));
         }
     } else {
-        d->writer.stop();
+        d->writer.stop(true, true);
         d->warningTimer.stop();
         d->pausedTimer.stop();
         d->statusBarWarningLabel->hide();
@@ -652,6 +735,13 @@ void RecorderDockerDock::slotSelectSnapshotDirectory()
         RecorderConfig(false).setSnapshotDirectory(directory);
         d->loadSettings();
     }
+}
+
+void RecorderDockerDock::onFocusedCaptureToggled(bool checked)
+{
+    d->focusedRecord = checked;
+    RecorderConfig(false).setFocusedRecord(checked);
+    d->loadSettings();
 }
 
 void RecorderDockerDock::onRecordIsolateLayerModeToggled(bool checked)

@@ -213,7 +213,7 @@
       <statusTip/>
     </Action>
     <Action name="command_bar_open">
-      <icon/>
+      <icon>search-actions</icon>
       <text>Search Actions</text>
       <whatsThis/>
       <toolTip>Open the command bar to search through actions.</toolTip>
@@ -793,7 +793,7 @@
       <statusTip/>
     </Action>
     <Action name="selection_tool_mode_add">
-      <icon/>
+      <icon>selection_add</icon>
       <text>Selection Mode: Add</text>
       <whatsThis/>
       <toolTip>Selection Mode: Add</toolTip>
@@ -803,7 +803,7 @@
       <statusTip/>
     </Action>
     <Action name="selection_tool_mode_subtract">
-      <icon/>
+      <icon>selection_subtract</icon>
       <text>Selection Mode: Subtract</text>
       <whatsThis/>
       <toolTip>Selection Mode: Subtract</toolTip>
@@ -813,7 +813,7 @@
       <statusTip/>
     </Action>
     <Action name="selection_tool_mode_intersect">
-      <icon/>
+      <icon>selection_intersect</icon>
       <text>Selection Mode: Intersect</text>
       <whatsThis/>
       <toolTip>Selection Mode: Intersect</toolTip>
@@ -823,7 +823,7 @@
       <statusTip/>
     </Action>
     <Action name="selection_tool_mode_replace">
-      <icon/>
+      <icon>selection_replace</icon>
       <text>Selection Mode: Replace</text>
       <whatsThis/>
       <toolTip>Selection Mode: Replace</toolTip>
@@ -907,7 +907,7 @@
       <statusTip/>
     </Action>
     <Action name="rotate_brush_tip_clockwise">
-      <icon/>
+      <icon>rotate-brush-CW</icon>
       <text>Rotate brush tip clockwise</text>
       <whatsThis/>
       <toolTip>Rotate brush tip clockwise</toolTip>
@@ -919,7 +919,7 @@
       <statusTip/>
     </Action>
     <Action name="rotate_brush_tip_clockwise_precise">
-      <icon/>
+      <icon>rotate-brush-CW-precise</icon>
       <text>Rotate brush tip clockwise (precise)</text>
       <whatsThis/>
       <toolTip>Rotate brush tip clockwise (precise)</toolTip>
@@ -931,7 +931,7 @@
       <statusTip/>
     </Action>
     <Action name="rotate_brush_tip_counter_clockwise">
-      <icon/>
+      <icon>rotate-brush-CCW</icon>
       <text>Rotate brush tip counter-clockwise</text>
       <whatsThis/>
       <toolTip>Rotate brush tip counter-clockwise</toolTip>
@@ -943,17 +943,17 @@
       <statusTip/>
     </Action>
     <Action name="rotate_brush_tip_counter_clockwise_precise">
-    <icon/>
-    <text>Rotate brush tip counter-clockwise (precise)</text>
-    <whatsThis/>
-    <toolTip>Rotate brush tip counter-clockwise (precise)</toolTip>
-    <iconText>Rotate brush tip counter-clockwise (precise)</iconText>
-    <activationFlags>0</activationFlags>
-    <activationConditions>0</activationConditions>
-    <shortcut/>
-    <isCheckable>false</isCheckable>
-    <statusTip/>
-  </Action>
+      <icon>rotate-brush-CCW-precise</icon>
+      <text>Rotate brush tip counter-clockwise (precise)</text>
+      <whatsThis/>
+      <toolTip>Rotate brush tip counter-clockwise (precise)</toolTip>
+      <iconText>Rotate brush tip counter-clockwise (precise)</iconText>
+      <activationFlags>0</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
     <Action name="toggle_assistant">
       <icon/>
       <text>Toggle Snap To Assistants</text>
@@ -2331,7 +2331,7 @@
       <statusTip/>
     </Action>
     <Action name="add_scalar_keyframes">
-      <icon></icon>
+      <icon>keyframe-add</icon>
       <text>Add scalar keyframes</text>
       <whatsThis></whatsThis>
       <toolTip>Adds keyframe to control scalar property</toolTip>
@@ -2343,7 +2343,7 @@
       <statusTip/>
     </Action>
     <Action name="remove_scalar_keyframe">
-      <icon></icon>
+      <icon>keyframe-remove</icon>
       <text>Remove scalar keyframe</text>
       <whatsThis></whatsThis>
       <toolTip>Removes the selected scalar keyframe</toolTip>
@@ -2391,7 +2391,7 @@
         <statusTip/>
     </Action>
     <Action name="copy_frames">
-      <icon/>
+      <icon>copy-keyframes</icon>
       <text>Copy Keyframes</text>
       <whatsThis/>
       <toolTip>Copy frames to clipboard</toolTip>
@@ -2427,7 +2427,7 @@
       <statusTip/>
     </Action>
     <Action name="cut_frames">
-      <icon/>
+      <icon>cut-keyframes</icon>
       <text>Cut Keyframes</text>
       <whatsThis/>
       <toolTip>Cut frames to clipboard</toolTip>
@@ -2439,7 +2439,7 @@
       <statusTip/>
     </Action>
     <Action name="paste_frames">
-      <icon/>
+      <icon>paste-keyframes</icon>
       <text>Paste Keyframes</text>
       <whatsThis/>
       <toolTip>Paste frames from clipboard</toolTip>
@@ -2451,7 +2451,7 @@
       <statusTip/>
     </Action>
     <Action name="copy_columns_to_clipboard">
-      <icon/>
+      <icon>copy-columns</icon>
       <text>Copy Columns</text>
       <whatsThis/>
       <toolTip>Copy columns to clipboard</toolTip>
@@ -2463,7 +2463,7 @@
       <statusTip/>
     </Action>
     <Action name="cut_columns_to_clipboard">
-      <icon/>
+      <icon>cut-columns</icon>
       <text>Cut Columns</text>
       <whatsThis/>
       <toolTip>Cut columns to clipboard</toolTip>
@@ -2475,7 +2475,7 @@
       <statusTip/>
     </Action>
     <Action name="paste_columns_from_clipboard">
-      <icon/>
+      <icon>paste-columns</icon>
       <text>Paste Columns</text>
       <whatsThis/>
       <toolTip>Paste columns from clipboard</toolTip>
@@ -2515,6 +2515,90 @@
       <text>Update Playback Range</text>
       <whatsThis/>
       <toolTip/>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="interpolation_constant">
+      <icon>interpolation_constant</icon>
+      <text>Interpolate Constant</text>
+      <whatsThis/>
+      <toolTip>Hold constant value. No interpolation.</toolTip>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="interpolation_linear">
+      <icon>interpolation_linear</icon>
+      <text>Interpolate Linear</text>
+      <whatsThis/>
+      <toolTip>Linear interpolation.</toolTip>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="interpolation_bezier">
+      <icon>interpolation_bezier</icon>
+      <text>Interpolate Bezier</text>
+      <whatsThis/>
+      <toolTip>Bezier curve interpolation.</toolTip>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="tangents_sharp">
+      <icon>interpolation_sharp</icon>
+      <text>Interpolate Sharp</text>
+      <whatsThis/>
+      <toolTip>Sharp interpolation tangents.</toolTip>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="tangents_smooth">
+      <icon>interpolation_smooth</icon>
+      <text>Interpolate Smooth</text>
+      <whatsThis/>
+      <toolTip>Smooth interpolation tangents.</toolTip>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="zoom_to_fit_range">
+      <icon>zoom-fit</icon>
+      <text>Zoom to Fit Range</text>
+      <whatsThis/>
+      <toolTip>Zoom view to fit channel range.</toolTip>
+      <iconText/>
+      <activationFlags>1</activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut/>
+      <isCheckable>false</isCheckable>
+      <statusTip/>
+    </Action>
+    <Action name="zoom_to_fit_curve">
+      <icon>zoom-fit-curve</icon>
+      <text>Zoom to Fit Curve</text>
+      <whatsThis/>
+      <toolTip>Zoom view to fit curve.</toolTip>
       <iconText/>
       <activationFlags>1</activationFlags>
       <activationConditions>0</activationConditions>
@@ -2850,7 +2934,7 @@
       <statusTip/>
     </Action>
     <Action name="cut_selection_to_new_layer">
-      <icon/>
+      <icon>cut-to-new-layer</icon>
       <text>&amp;Cut Selection to New Layer</text>
       <whatsThis/>
       <toolTip>Cut Selection to New Layer</toolTip>
@@ -2862,7 +2946,7 @@
       <statusTip/>
     </Action>
     <Action name="copy_selection_to_new_layer">
-      <icon/>
+      <icon>copy-to-new-layer</icon>
       <text>Copy &amp;Selection to New Layer</text>
       <whatsThis/>
       <toolTip>Copy Selection to New Layer</toolTip>
@@ -2874,7 +2958,7 @@
       <statusTip/>
     </Action>
     <Action name="copy_layer_clipboard">
-      <icon/>
+      <icon>copy-layers</icon>
       <text>Copy Layer</text>
       <whatsThis/>
       <toolTip>Copy layer to clipboard</toolTip>
@@ -2886,7 +2970,7 @@
       <statusTip/>
     </Action>
     <Action name="cut_layer_clipboard">
-      <icon/>
+      <icon>cut-layers</icon>
       <text>Cut Layer</text>
       <whatsThis/>
       <toolTip>Cut layer to clipboard</toolTip>
@@ -2898,7 +2982,7 @@
       <statusTip/>
     </Action>
     <Action name="paste_layer_from_clipboard">
-      <icon/>
+      <icon>paste-layers</icon>
       <text>Paste Layer</text>
       <whatsThis/>
       <toolTip>Paste layer from clipboard</toolTip>
@@ -3006,7 +3090,7 @@
       <statusTip/>
     </Action>
     <Action name="save_node_as_image">
-      <icon>document-save</icon>
+      <icon>save-layers</icon>
       <text>&amp;Save Layer/Mask...</text>
       <whatsThis/>
       <toolTip>Save Layer/Mask</toolTip>
@@ -3018,7 +3102,7 @@
       <statusTip/>
     </Action>
     <Action name="save_vector_node_to_svg">
-      <icon>document-save</icon>
+      <icon>save-as-vector</icon>
       <text>Save Vector Layer as SVG...</text>
       <whatsThis/>
       <toolTip>Save Vector Layer as SVG</toolTip>
@@ -3030,7 +3114,7 @@
       <statusTip/>
     </Action>
     <Action name="save_groups_as_images">
-      <icon>document-save</icon>
+      <icon>save-group-layers</icon>
       <text>Save &amp;Group Layers...</text>
       <whatsThis/>
       <toolTip>Save Group Layers</toolTip>
@@ -3066,7 +3150,7 @@
       <statusTip/>
     </Action>
     <Action name="import_layer_from_file">
-      <icon/>
+      <icon>import-layer</icon>
       <text>I&amp;mport Layer...</text>
       <whatsThis/>
       <toolTip>Import Layer</toolTip>
@@ -3198,7 +3282,7 @@
       <statusTip/>
     </Action>
     <Action name="split_alpha_save_merged">
-      <icon>document-save</icon>
+      <icon>save-merged</icon>
       <text>&amp;Save Merged...</text>
       <whatsThis/>
       <toolTip>Save Merged</toolTip>
@@ -3626,7 +3710,7 @@
       <statusTip/>
     </Action>
     <Action name="set-copy-from">
-      <icon/>
+      <icon>set-copy-from</icon>
       <text>Set Copy F&amp;rom...</text>
       <whatsThis/>
       <toolTip>Set the source for the selected clone layers</toolTip>

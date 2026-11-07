@@ -34,6 +34,10 @@ void KisSelectionToolConfigWidgetHelper::createOptionWidget(
             &KisSelectionOptions::actionChanged,
             this,
             &KisSelectionToolConfigWidgetHelper::slotWidgetActionChanged);
+    connect(m_optionsWidget,
+            &KisSelectionOptions::moveSelectedContentChanged,
+            this,
+            &KisSelectionToolConfigWidgetHelper::slotWidgetMoveSelectedContentChanged);
     connect(m_optionsWidget, &KisSelectionOptions::antiAliasSelectionChanged,
             this, &KisSelectionToolConfigWidgetHelper::slotWidgetAntiAliasChanged);
     connect(m_optionsWidget,
@@ -75,6 +79,14 @@ SelectionAction KisSelectionToolConfigWidgetHelper::selectionAction() const
         return SELECTION_DEFAULT;
     }
     return m_optionsWidget->action();
+}
+
+bool KisSelectionToolConfigWidgetHelper::moveSelectedContent() const
+{
+    if (!m_optionsWidget) {
+        return true;
+    }
+    return m_optionsWidget->moveSelectedContent();
 }
 
 bool KisSelectionToolConfigWidgetHelper::antiAliasSelection() const
@@ -148,6 +160,12 @@ void KisSelectionToolConfigWidgetHelper::slotWidgetActionChanged(
     Q_EMIT selectionActionChanged(action);
 }
 
+void KisSelectionToolConfigWidgetHelper::slotWidgetMoveSelectedContentChanged(bool value)
+{
+    KConfigGroup cfg = KSharedConfig::openConfig()->group(m_configGroupForTool);
+    cfg.writeEntry("moveSelectedContent", value);
+}
+
 void KisSelectionToolConfigWidgetHelper::slotWidgetAntiAliasChanged(bool value)
 {
     KConfigGroup cfg = KSharedConfig::openConfig()->group(m_configGroupForTool);
@@ -176,13 +194,25 @@ void KisSelectionToolConfigWidgetHelper::slotReferenceLayersChanged(
     KisSelectionOptions::ReferenceLayers referenceLayers)
 {
     KConfigGroup cfg = KSharedConfig::openConfig()->group(m_configGroupForTool);
-    cfg.writeEntry(
-        "sampleLayersMode",
-        referenceLayers == KisSelectionOptions::AllLayers
-            ? "sampleAllLayers"
-            : (referenceLayers == KisSelectionOptions::ColorLabeledLayers
-                   ? "sampleColorLabeledLayers"
-                   : "sampleCurrentLayer"));
+
+    QString sampleModeString = "sampleCurrentLayer";
+
+    switch (referenceLayers) {
+    case KisSelectionOptions::AllLayers:
+        sampleModeString = "sampleAllLayers";
+        break;
+    case KisSelectionOptions::CurrentGroup:
+        sampleModeString = "sampleCurrentGroup";
+        break;
+    case KisSelectionOptions::ColorLabeledLayers:
+        sampleModeString = "sampleColorLabeledLayers";
+        break;
+    case KisSelectionOptions::CurrentLayer:
+        // noop, initialized above
+        break;
+    }
+
+    cfg.writeEntry("sampleLayersMode", sampleModeString);
 }
 
 void KisSelectionToolConfigWidgetHelper::slotSelectedColorLabelsChanged()
@@ -260,6 +290,8 @@ void KisSelectionToolConfigWidgetHelper::reloadExactToolConfig()
 
     KConfigGroup cfgToolSpecific =
         KSharedConfig::openConfig()->group(m_configGroupForTool);
+    const bool moveSelectedContent =
+        cfgToolSpecific.readEntry("moveSelectedContent", false);
     const bool antiAliasSelection =
         cfgToolSpecific.readEntry("antiAliasSelection", true);
     const int growSelection = cfgToolSpecific.readEntry("growSelection", 0);
@@ -274,12 +306,21 @@ void KisSelectionToolConfigWidgetHelper::reloadExactToolConfig()
         cfgToolSpecific.readEntry<QString>("colorLabels", "")
             .split(',', Qt::SkipEmptyParts);
 
-    const KisSelectionOptions::ReferenceLayers referenceLayers =
-        referenceLayersStr == "sampleAllLayers"
-        ? KisSelectionOptions::AllLayers
-        : (referenceLayersStr == "sampleColorLabeledLayers"
-               ? KisSelectionOptions::ColorLabeledLayers
-               : KisSelectionOptions::CurrentLayer);
+    KisSelectionOptions::ReferenceLayers referenceLayers = KisSelectionOptions::CurrentLayer;
+
+    if (referenceLayersStr == "sampleAllLayers") {
+        referenceLayers = KisSelectionOptions::AllLayers;
+    } else if (referenceLayersStr == "sampleCurrentGroup") {
+        referenceLayers = KisSelectionOptions::CurrentGroup;
+    } else if (referenceLayersStr == "sampleCurrentLayer") {
+        referenceLayers = KisSelectionOptions::CurrentLayer;
+    } else if (referenceLayersStr == "sampleColorLabeledLayers") {
+        referenceLayers = KisSelectionOptions::ColorLabeledLayers;
+    } else {
+        qWarning() << "KisSelectionToolConfigWidgetHelper::reloadExactToolConfig(): unknown reference layer mode string" << referenceLayersStr;
+        referenceLayers = KisSelectionOptions::CurrentLayer;
+    }
+
     QList<int> colorLabels;
     for (const QString &colorLabelStr : colorLabelsStr) {
         bool ok;
@@ -290,6 +331,7 @@ void KisSelectionToolConfigWidgetHelper::reloadExactToolConfig()
     }
 
     KisSignalsBlocker b(m_optionsWidget);
+    m_optionsWidget->setMoveSelectedContent(moveSelectedContent);
     m_optionsWidget->setAntiAliasSelection(antiAliasSelection);
     m_optionsWidget->setGrowSelection(growSelection);
     m_optionsWidget->setStopGrowingAtDarkestPixel(stopGrowingAtDarkestPixel);

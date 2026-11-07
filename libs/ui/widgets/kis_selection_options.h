@@ -19,13 +19,14 @@ class KRITAUI_EXPORT KisSelectionOptions : public KisOptionCollectionWidget
     Q_OBJECT
 
 public:
-    enum ReferenceLayers { CurrentLayer, AllLayers, ColorLabeledLayers };
+    enum ReferenceLayers { CurrentLayer, CurrentGroup, AllLayers, ColorLabeledLayers };
 
     KisSelectionOptions(QWidget *parent = nullptr);
     ~KisSelectionOptions() override;
 
     SelectionMode mode() const;
     SelectionAction action() const;
+    bool moveSelectedContent() const;
     bool antiAliasSelection() const;
     int growSelection() const;
     bool stopGrowingAtDarkestPixel() const;
@@ -35,6 +36,7 @@ public:
 
     void setMode(SelectionMode newMode);
     void setAction(SelectionAction newAction);
+    void setMoveSelectedContent(bool newMoveSelectedContent);
     void setAntiAliasSelection(bool newAntiAliasSelection);
     void setGrowSelection(int newGrowSelection);
     void setStopGrowingAtDarkestPixel(bool newStopGrowingAtDarkestPixel);
@@ -54,6 +56,7 @@ public:
 Q_SIGNALS:
     void modeChanged(SelectionMode mode);
     void actionChanged(SelectionAction action);
+    void moveSelectedContentChanged(bool moveSelectedContent);
     void antiAliasSelectionChanged(bool antiAliasSelection);
     void growSelectionChanged(int growSelection);
     void stopGrowingAtDarkestPixelChanged(bool stopGrowingAtDarkestPixel);

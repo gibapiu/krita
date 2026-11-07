@@ -28,6 +28,7 @@ public:
     KisSelectionOptions *q;
     KisOptionButtonStrip *optionButtonStripMode{nullptr};
     KisOptionButtonStrip *optionButtonStripAction{nullptr};
+    QCheckBox *checkBoxMoveSelectedContent{nullptr};
     QCheckBox *checkBoxAntiAliasSelection{nullptr};
     KisSliderSpinBox *sliderGrowSelection{nullptr};
     QToolButton *buttonStopGrowingAtDarkestPixel {nullptr};
@@ -87,10 +88,12 @@ public:
         switch (action) {
         case CurrentLayer:
             return 0;
-        case AllLayers:
+        case CurrentGroup:
             return 1;
-        case ColorLabeledLayers:
+        case AllLayers:
             return 2;
+        case ColorLabeledLayers:
+            return 3;
         default:
             return 0;
         }
@@ -102,8 +105,10 @@ public:
         case 0:
             return CurrentLayer;
         case 1:
-            return AllLayers;
+            return CurrentGroup;
         case 2:
+            return AllLayers;
+        case 3:
             return ColorLabeledLayers;
         default:
             return CurrentLayer;
@@ -184,6 +189,10 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
         m_d->checkBoxSelectionActionsPanel->setCheckState(Qt::CheckState::Unchecked);
     }
 
+    m_d->checkBoxMoveSelectedContent = new QCheckBox(
+        i18nc("The move-selected-content checkbox in selection tool options",
+            "Move Selected Content"));
+
     m_d->checkBoxAntiAliasSelection = new QCheckBox(
         i18nc("The anti-alias checkbox in fill tool options", "Anti-aliasing"));
     KisOptionCollectionWidget *containerGrowSelection = new KisOptionCollectionWidget;
@@ -214,6 +223,8 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
     m_d->optionButtonStripReference->addButton(
         KisIconUtils::loadIcon("current-layer"));
     m_d->optionButtonStripReference->addButton(
+        KisIconUtils::loadIcon("current-group"));
+    m_d->optionButtonStripReference->addButton(
         KisIconUtils::loadIcon("all-layers"));
     m_d->optionButtonStripReference->addButton(KisIconUtils::loadIcon("tag"));
     m_d->optionButtonStripReference->button(0)->setChecked(true);
@@ -240,6 +251,9 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
     m_d->optionButtonStripAction->button(4)->setToolTip(
         i18nc("@info:tooltip", "Symmetric Difference"));
 
+    m_d->checkBoxMoveSelectedContent->setToolTip(
+        i18nc("@info:tooltip", "Move Selected Content"));
+
     m_d->checkBoxAntiAliasSelection->setToolTip(
         i18n("Smooths the edges of the selection"));
     m_d->sliderGrowSelection->setToolTip(
@@ -252,8 +266,10 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
     m_d->optionButtonStripReference->button(0)->setToolTip(
         i18n("Select regions found from the active layer"));
     m_d->optionButtonStripReference->button(1)->setToolTip(
-        i18n("Select regions found from the merging of all layers"));
+        i18n("Select regions found from the active group"));
     m_d->optionButtonStripReference->button(2)->setToolTip(
+        i18n("Select regions found from the merging of all layers"));
+    m_d->optionButtonStripReference->button(3)->setToolTip(
         i18n("Select regions found from the merging of layers with specific color labels"));
 
     // Construct the option widget
@@ -284,6 +300,8 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
 
     appendWidget("sapCheckBox", m_d->checkBoxSelectionActionsPanel);
 
+    appendWidget("checkBoxMoveSelectedContent", m_d->checkBoxMoveSelectedContent);
+
     KisOptionCollectionWidgetWithHeader *sectionAdjustments =
         new KisOptionCollectionWidgetWithHeader(
             i18nc("The 'adjustments' section label in selection tools options",
@@ -299,14 +317,19 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
     // Make connections
     connect(m_d->optionButtonStripMode,
             QOverload<int, bool>::of(&KisOptionButtonStrip::buttonToggled),
+            this,
             [this](int i, int c) {
                 m_d->on_optionButtonStripMode_buttonToggled(i, c);
             });
     connect(m_d->optionButtonStripAction,
             QOverload<int, bool>::of(&KisOptionButtonStrip::buttonToggled),
+            this,
             [this](int i, int c) {
                 m_d->on_optionButtonStripAction_buttonToggled(i, c);
             });
+    connect(m_d->checkBoxMoveSelectedContent,
+             SIGNAL(toggled(bool)),
+             SIGNAL(moveSelectedContentChanged(bool)));
     connect(m_d->checkBoxAntiAliasSelection,
             SIGNAL(toggled(bool)),
             SIGNAL(antiAliasSelectionChanged(bool)));
@@ -321,6 +344,7 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
             SIGNAL(featherSelectionChanged(int)));
     connect(m_d->optionButtonStripReference,
             QOverload<int, bool>::of(&KisOptionButtonStrip::buttonToggled),
+            this,
             [this](int i, int c) {
                 m_d->on_optionButtonStripReference_buttonToggled(i, c);
             });
@@ -348,6 +372,11 @@ SelectionAction KisSelectionOptions::action() const
 {
     return m_d->buttonIndexToAction(
         m_d->optionButtonStripAction->checkedButtonIndex());
+}
+
+bool KisSelectionOptions::moveSelectedContent() const
+{
+    return m_d->checkBoxMoveSelectedContent->isChecked();
 }
 
 bool KisSelectionOptions::antiAliasSelection() const
@@ -398,6 +427,11 @@ void KisSelectionOptions::setAction(SelectionAction newAction)
     KIS_SAFE_ASSERT_RECOVER_RETURN(button);
 
     button->setChecked(true);
+}
+
+void KisSelectionOptions::setMoveSelectedContent(bool newMoveSelectedContent)
+{
+    m_d->checkBoxMoveSelectedContent->setChecked(newMoveSelectedContent);
 }
 
 void KisSelectionOptions::setAntiAliasSelection(bool newAntiAliasSelection)

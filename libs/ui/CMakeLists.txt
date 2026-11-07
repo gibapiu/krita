@@ -73,7 +73,7 @@ set(kritaui_LIB_SRCS
     dialogs/KisRecoverNamedAutosaveDialog.cpp
     dialogs/KisDlgSavePreset.cpp
     dialogs/kis_dlg_missing_color_profile.cpp
-    dialogs/kis_dlg_hlg_import.cpp
+
     dialogs/KisDlgConfigureCumulativeUndo.cpp
     dialogs/KisCumulativeUndoModel.cpp
     dialogs/KisColorSpaceConversionDialog.cpp
@@ -231,6 +231,7 @@ set(kritaui_LIB_SRCS
     tool/strokes/KisMaskingBrushRenderer.cpp
     tool/strokes/KisMaskingBrushCompositeOpFactory.cpp
     tool/strokes/move_stroke_strategy.cpp
+    tool/strokes/move_selection_stroke_strategy.cpp
     tool/strokes/KisNodeSelectionRecipe.cpp
     tool/KisSelectionToolFactoryBase.cpp
     tool/KisToolPaintFactoryBase.cpp
@@ -334,6 +335,7 @@ set(kritaui_LIB_SRCS
     dialogs/KisDlgPaletteEditor.cpp
 
     widgets/KisNewsWidget.cpp
+    widgets/KisNewsItem.cpp
     widgets/KisGamutMaskToolbar.cpp
 	widgets/KisColorSamplerPreviewPreview.cpp
 
@@ -635,6 +637,7 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/KisWelcomePage.ui
     forms/WdgDlgPaletteEditor.ui
     forms/KisNewsPage.ui
+    forms/KisNewsItem.ui
     forms/wdgGamutMaskToolbar.ui
     forms/wdgchangeclonesource.ui
     forms/koDocumentInfoAboutWidget.ui
@@ -647,7 +650,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
 
     widgets/KisDlgListPicker.ui
     dialogs/kis_delayed_save_dialog.ui
-    dialogs/kis_dlg_hlg_import.ui
     dialogs/KisRecoverNamedAutosaveDialog.ui
     input/config/kis_input_configuration_page.ui
     input/config/kis_edit_profiles_dialog.ui

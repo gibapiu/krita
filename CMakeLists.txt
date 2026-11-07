@@ -101,9 +101,9 @@ if (APPLE)
     set(BUILD_WITH_INSTALL_RPATH 1)
     set(MACOS_GUI_TEST "GUI")
     if (BUILD_WITH_QT6)
-        set(MACOS_MINIMUM_VERSION 12)
+        set(MACOS_MINIMUM_VERSION 13)
     else()
-        set(MACOS_MINIMUM_VERSION 10.15)
+        set(MACOS_MINIMUM_VERSION 12)
     endif()
     add_definitions(-mmacosx-version-min=${MACOS_MINIMUM_VERSION} -Wno-macro-redefined -Wno-deprecated-register)
     if (CMAKE_OSX_ARCHITECTURES)
@@ -950,6 +950,12 @@ add_definitions(
   -DQT_USE_FAST_CONCATENATION 
   -DQT_USE_FAST_OPERATOR_PLUS
 )
+
+if (QT_MAJOR_VERSION STREQUAL "6")
+    add_definitions(
+        -DQT_NO_CONTEXTLESS_CONNECT
+    )
+endif()
 
 # MSVC is unable to disambiguate between definitions of QVector<QPointF> 
 # and QPolygonF. This is a known upstream bug e.g.:
