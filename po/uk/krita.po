@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: krita\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-11-06 00:48+0000\n"
+"POT-Creation-Date: 2026-11-13 00:55+0000\n"
 "PO-Revision-Date: 2026-11-05 18:07+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -21816,7 +21816,7 @@ msgstr "Імпортоване зображення"
 
 #. i18n.
 #: libs/image/kis_image.cc:762 libs/ui/kis_import_catcher.cc:50
-#: libs/ui/KisDocument.cpp:2701 plugins/impex/psd/psd_loader.cpp:221
+#: libs/ui/KisDocument.cpp:2704 plugins/impex/psd/psd_loader.cpp:221
 #, kde-format
 msgctxt "Name for the bottom-most layer in the layerstack"
 msgid "Background"
@@ -24428,9 +24428,9 @@ msgstr "Локальні ресурси"
 #: libs/ui/kis_node_manager.cpp:1384 libs/ui/KisApplication.cpp:1230
 #: libs/ui/KisApplication.cpp:1233 libs/ui/KisApplication.cpp:1249
 #: libs/ui/KisApplication.cpp:1281 libs/ui/KisApplication.cpp:1295
-#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1057
-#: libs/ui/KisDocument.cpp:1072 libs/ui/KisDocument.cpp:2039
-#: libs/ui/KisDocument.cpp:2082 libs/ui/KisDocument.cpp:2093
+#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1060
+#: libs/ui/KisDocument.cpp:1075 libs/ui/KisDocument.cpp:2042
+#: libs/ui/KisDocument.cpp:2085 libs/ui/KisDocument.cpp:2096
 #: libs/ui/KisMainWindow.cpp:1049 libs/ui/KisMainWindow.cpp:1119
 #: libs/ui/KisMainWindow.cpp:1263 libs/ui/KisMainWindow.cpp:1360
 #: libs/ui/KisMainWindow.cpp:2107 libs/ui/KisMainWindow.cpp:2116
@@ -35801,8 +35801,8 @@ msgstr "Вибір робочого простору"
 msgid "Brush composite"
 msgstr "Макет пензля"
 
-#: libs/ui/kis_paintop_box.cc:1338 libs/ui/kis_paintop_box.cc:1360
-#: libs/ui/kis_paintop_box.cc:1374
+#: libs/ui/kis_paintop_box.cc:1344 libs/ui/kis_paintop_box.cc:1366
+#: libs/ui/kis_paintop_box.cc:1380
 #, kde-format
 msgid ""
 "%1\n"
@@ -36514,35 +36514,35 @@ msgstr ""
 "Клонувати документ\n"
 "клонування документа"
 
-#: libs/ui/KisDocument.cpp:792
+#: libs/ui/KisDocument.cpp:793
 #, kde-format
 msgid "%1 cannot be written to. Please save under a different name."
 msgstr ""
 "Запис до %1 неможливий. Будь ласка, збережіть дані до файла з іншою назвою."
 
-#: libs/ui/KisDocument.cpp:843
+#: libs/ui/KisDocument.cpp:844
 #, kde-format
 msgctxt "Saving error message"
 msgid "Failed to create a backup file"
 msgstr "Не вдалося створити файл резервної копії"
 
-#: libs/ui/KisDocument.cpp:860
+#: libs/ui/KisDocument.cpp:861
 #, kde-format
 msgctxt "Saving error message"
 msgid "Failed to create a numbered backup file"
 msgstr "Не вдалося створити нумерований файл резервної копії"
 
-#: libs/ui/KisDocument.cpp:882
+#: libs/ui/KisDocument.cpp:883
 #, kde-format
 msgid "Exporting Document..."
 msgstr "Експортуємо документ…"
 
-#: libs/ui/KisDocument.cpp:883
+#: libs/ui/KisDocument.cpp:884
 #, kde-format
 msgid "Saving Document..."
 msgstr "Зберігаємо документ…"
 
-#: libs/ui/KisDocument.cpp:898
+#: libs/ui/KisDocument.cpp:899
 #, kde-format
 msgid ""
 "Could not start saving %1. Wait until the current save operation has "
@@ -36551,28 +36551,28 @@ msgstr ""
 "Не вдалося розпочати збереження %1. Зачекайте, доки буде завершено поточну "
 "дію зі збереження."
 
-#: libs/ui/KisDocument.cpp:903
+#: libs/ui/KisDocument.cpp:904
 #, kde-format
 msgid "Could not start saving %1. Image is busy"
 msgstr "Не вдалося розпочати зберігання %1. Зображення зайняте іншою програмою"
 
-#: libs/ui/KisDocument.cpp:908
+#: libs/ui/KisDocument.cpp:909
 #, kde-format
 msgid "Could not start saving %1. Unknown failure has happened"
 msgstr "Не вдалося розпочати збереження %1. Сталася невідома критична помилка"
 
-#: libs/ui/KisDocument.cpp:1051
+#: libs/ui/KisDocument.cpp:1054
 #, kde-format
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during saving %1: %2"
 msgstr "Помилка під час збереження %1: %2"
 
-#: libs/ui/KisDocument.cpp:1058
+#: libs/ui/KisDocument.cpp:1061
 #, kde-format
 msgid "Could not save %1."
 msgstr "Не вдалося зберегти %1."
 
-#: libs/ui/KisDocument.cpp:1075
+#: libs/ui/KisDocument.cpp:1078
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the "
@@ -36580,45 +36580,45 @@ msgctxt ""
 msgid "%1 has been saved but is incomplete."
 msgstr "%1 було записано, але дані є неповними."
 
-#: libs/ui/KisDocument.cpp:1081
+#: libs/ui/KisDocument.cpp:1084
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the document"
 msgid "Some problems were encountered when saving."
 msgstr "Під час збереження виникли певні проблеми."
 
-#: libs/ui/KisDocument.cpp:1098
+#: libs/ui/KisDocument.cpp:1101
 #, kde-format
 msgid "Finished saving %1"
 msgstr "Завершено збереження %1"
 
-#: libs/ui/KisDocument.cpp:1539
+#: libs/ui/KisDocument.cpp:1542
 #, kde-format
 msgid "Autosaving... %1"
 msgstr "Автозбереження… %1"
 
-#: libs/ui/KisDocument.cpp:1547
+#: libs/ui/KisDocument.cpp:1550
 #, kde-format
 msgid "Autosaving..."
 msgstr "Автозбереження…"
 
-#: libs/ui/KisDocument.cpp:1553
+#: libs/ui/KisDocument.cpp:1556
 #, kde-format
 msgid "Autosaving postponed: document is busy..."
 msgstr "Автозберення відкладено: документ зайнято…"
 
-#: libs/ui/KisDocument.cpp:1696
+#: libs/ui/KisDocument.cpp:1699
 #, kde-format
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during autosaving %1: %2"
 msgstr "Помилка під час автозбереження %1: %2"
 
-#: libs/ui/KisDocument.cpp:1710
+#: libs/ui/KisDocument.cpp:1713
 #, kde-format
 msgid "Finished autosaving %1"
 msgstr "Завершено автозбереження %1"
 
-#: libs/ui/KisDocument.cpp:1967
+#: libs/ui/KisDocument.cpp:1970
 #, kde-format
 msgid ""
 "Malformed Path\n"
@@ -36627,38 +36627,38 @@ msgstr ""
 "Помилкове форматування шляху\n"
 "%1"
 
-#: libs/ui/KisDocument.cpp:2039
+#: libs/ui/KisDocument.cpp:2042
 #, kde-format
 msgid "File %1 does not exist."
 msgstr "Файла %1 не існує."
 
-#: libs/ui/KisDocument.cpp:2068
+#: libs/ui/KisDocument.cpp:2071
 #, kde-format
 msgid "Opening document"
 msgstr "Відкриваємо документ"
 
-#: libs/ui/KisDocument.cpp:2083
+#: libs/ui/KisDocument.cpp:2086
 #, kde-format
 msgid "Could not open %1."
 msgstr "Не вдалось відкрити %1."
 
-#: libs/ui/KisDocument.cpp:2094
+#: libs/ui/KisDocument.cpp:2097
 #, kde-format
 msgid "There were problems opening %1."
 msgstr "Під час спроби відкрити %1 виникли проблеми."
 
-#: libs/ui/KisDocument.cpp:2232
+#: libs/ui/KisDocument.cpp:2235
 #, kde-format
 msgid "Not Saved"
 msgstr "Не збережено"
 
-#: libs/ui/KisDocument.cpp:2708
+#: libs/ui/KisDocument.cpp:2711
 #, kde-format
 msgctxt "Name of automatically created background color fill layer"
 msgid "Background Fill"
 msgstr "Заповнення тла"
 
-#: libs/ui/KisDocument.cpp:2770
+#: libs/ui/KisDocument.cpp:2773
 #, kde-format
 msgctxt ""
 "progress dialog message when the user closes the document that is being saved"
@@ -38888,7 +38888,7 @@ msgstr ""
 #: libs/ui/tool/kis_tool_polyline_base.cpp:122
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:164
 #: libs/ui/tool/KisToolOutlineBase.cpp:169
-#: plugins/tools/basictools/kis_tool_ellipse.cc:167
+#: plugins/tools/basictools/kis_tool_ellipse.cc:169
 #: plugins/tools/basictools/kis_tool_line.cc:212
 #: plugins/tools/basictools/kis_tool_path.cc:91
 #: plugins/tools/basictools/kis_tool_pencil.cc:64
@@ -38901,7 +38901,7 @@ msgstr "У цьому просторі кольорів не можна скор
 #: libs/ui/tool/kis_tool_polyline_base.cpp:116
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:158
 #: libs/ui/tool/KisToolOutlineBase.cpp:163
-#: plugins/tools/basictools/kis_tool_ellipse.cc:160
+#: plugins/tools/basictools/kis_tool_ellipse.cc:162
 #: plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp:69
 #, kde-format
 msgid ""
@@ -41298,7 +41298,6 @@ msgid "%1:"
 msgstr "%1:"
 
 #: libs/widgets/kis_color_input.cpp:337
-#: libs/widgets/KoEditColorSetDialog.cpp:158
 #, kde-format
 msgid "Color name:"
 msgstr "Назва кольору:"
@@ -41724,31 +41723,6 @@ msgstr "Від'єднати бічну панель"
 msgctxt "@info:tooltip"
 msgid "Close Docker"
 msgstr "Закрити бічну панель"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:158
-#, kde-format
-msgid "Add Color To Palette"
-msgstr "Додати колір до палітри"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#, kde-format
-msgid "Cannot write to palette file %1. Maybe it is read-only. "
-msgstr ""
-"Неможливо провести запис до файла палітри %1. Можливо ви маєте дозвіл лише "
-"на його читання. "
-
-#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
-#: plugins/filters/palettize/palettize.ui:39
-#, kde-format
-msgid "Palette"
-msgstr "Палітра"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:215
-#, kde-format
-msgid "Add/Remove Colors"
-msgstr "Додати/Вилучити кольори"
 
 #: libs/widgets/KoResourceServerProvider.cpp:44
 #, kde-format
@@ -43253,7 +43227,7 @@ msgstr "Перспектива"
 msgid "Perspective Ellipse assistant"
 msgstr "Інструмент створення перспективи еліпса"
 
-#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:632
+#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:623
 #, kde-format
 msgid "Perspective Ellipse"
 msgstr "Перспектива еліпса"
@@ -43294,7 +43268,7 @@ msgstr "Двоточкова перспектива"
 msgid "Vanishing Point assistant"
 msgstr "Допоміжна точка сходу"
 
-#: plugins/assistants/Assistants/VanishingPointAssistant.cc:341
+#: plugins/assistants/Assistants/VanishingPointAssistant.cc:338
 #, kde-format
 msgid "Vanishing Point"
 msgstr "Точка сходу"
@@ -45643,6 +45617,13 @@ msgstr "Огляд"
 msgctxt "Make the controls in the overview docker auto-hide or always visible"
 msgid "Pin navigation controls"
 msgstr "Пришпилити керування навігацією"
+
+#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
+#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
+#: plugins/filters/palettize/palettize.ui:39
+#, kde-format
+msgid "Palette"
+msgstr "Палітра"
 
 #: plugins/dockers/palettedocker/palettedocker_dock.cpp:66
 #, kde-format
@@ -66574,6 +66555,7 @@ msgid "Activate Brush Preset {num}"
 msgstr "Задіяти набір пензлів {num}"
 
 #: plugins/python/tenbrushes/tenbrushes.py:121
+#, python-brace-format
 msgid ""
 "{}\n"
 "selected"
@@ -67259,45 +67241,45 @@ msgstr "Вмикання прилипання при використанні г
 msgid "Color Sampler Tool"
 msgstr "Інструмент «Вибір кольору»"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:76
+#: plugins/tools/basictools/kis_tool_ellipse.cc:78
 #, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "Bounding Box"
 msgstr "Обмежувальна рамка"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:77
+#: plugins/tools/basictools/kis_tool_ellipse.cc:79
 #, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "3-Point"
 msgstr "3 точки"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:78
+#: plugins/tools/basictools/kis_tool_ellipse.cc:80
 #, kde-format
 msgid "Place the ellipse inside a bounding box"
 msgstr "Розташувати еліпс в обмежувальній рамці"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:79
+#: plugins/tools/basictools/kis_tool_ellipse.cc:81
 #, kde-format
 msgid "Place the ellipse by setting the major axis and width"
 msgstr "Розмістити еліпс встановленням головної вісі і ширини"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:110
+#: plugins/tools/basictools/kis_tool_ellipse.cc:112
 #, kde-format
 msgctxt "Ellipse tool placement mode option label"
 msgid "Placement:"
 msgstr "Розташування:"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:343
+#: plugins/tools/basictools/kis_tool_ellipse.cc:345
 #, kde-format
 msgid "Click to place the other end of the ellipse axis."
 msgstr "Клацніть для розміщення іншого кінця вісі еліпса."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:345
+#: plugins/tools/basictools/kis_tool_ellipse.cc:347
 #, kde-format
 msgid "Click to set the ellipse width."
 msgstr "Клацніть, щоб встановити ширину еліпса."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:347
+#: plugins/tools/basictools/kis_tool_ellipse.cc:349
 #, kde-format
 msgid ""
 "Drag handles to adjust the ellipse. Press Enter to apply or Esc to cancel."
@@ -67305,9 +67287,9 @@ msgstr ""
 "Перетягніть елементи керування для коригування еліпса. Натисніть Enter, щоб "
 "застосувати, або Esc, щоб скасувати."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:584
-#: plugins/tools/basictools/kis_tool_ellipse.cc:606
-#: plugins/tools/basictools/kis_tool_ellipse.cc:623
+#: plugins/tools/basictools/kis_tool_ellipse.cc:587
+#: plugins/tools/basictools/kis_tool_ellipse.cc:609
+#: plugins/tools/basictools/kis_tool_ellipse.cc:626
 msgctxt "(qtundo-format)"
 msgid "Draw Ellipse"
 msgstr ""
@@ -72007,6 +71989,17 @@ msgstr ""
 "Перемикання між повним діапазоном і піддіапазоном.\n"
 "Повний діапазон: [%1, %2]\n"
 "Піддіапазон: [%3, %4]"
+
+#~ msgid "Add Color To Palette"
+#~ msgstr "Додати колір до палітри"
+
+#~ msgid "Cannot write to palette file %1. Maybe it is read-only. "
+#~ msgstr ""
+#~ "Неможливо провести запис до файла палітри %1. Можливо ви маєте дозвіл "
+#~ "лише на його читання. "
+
+#~ msgid "Add/Remove Colors"
+#~ msgstr "Додати/Вилучити кольори"
 
 #~ msgid "&Zoom In"
 #~ msgstr "З&більшити"

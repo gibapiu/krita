@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kdeorg\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-11-06 00:48+0000\n"
+"POT-Creation-Date: 2026-11-13 00:55+0000\n"
 "PO-Revision-Date: 2024-04-22 16:03\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
@@ -21539,7 +21539,7 @@ msgstr "导入的图像"
 
 #. i18n.
 #: libs/image/kis_image.cc:762 libs/ui/kis_import_catcher.cc:50
-#: libs/ui/KisDocument.cpp:2701 plugins/impex/psd/psd_loader.cpp:221
+#: libs/ui/KisDocument.cpp:2704 plugins/impex/psd/psd_loader.cpp:221
 #, kde-format
 msgctxt "Name for the bottom-most layer in the layerstack"
 msgid "Background"
@@ -24008,9 +24008,9 @@ msgstr "本地资源"
 #: libs/ui/kis_node_manager.cpp:1384 libs/ui/KisApplication.cpp:1230
 #: libs/ui/KisApplication.cpp:1233 libs/ui/KisApplication.cpp:1249
 #: libs/ui/KisApplication.cpp:1281 libs/ui/KisApplication.cpp:1295
-#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1057
-#: libs/ui/KisDocument.cpp:1072 libs/ui/KisDocument.cpp:2039
-#: libs/ui/KisDocument.cpp:2082 libs/ui/KisDocument.cpp:2093
+#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1060
+#: libs/ui/KisDocument.cpp:1075 libs/ui/KisDocument.cpp:2042
+#: libs/ui/KisDocument.cpp:2085 libs/ui/KisDocument.cpp:2096
 #: libs/ui/KisMainWindow.cpp:1049 libs/ui/KisMainWindow.cpp:1119
 #: libs/ui/KisMainWindow.cpp:1263 libs/ui/KisMainWindow.cpp:1360
 #: libs/ui/KisMainWindow.cpp:2107 libs/ui/KisMainWindow.cpp:2116
@@ -35049,8 +35049,8 @@ msgstr "打开工作区切换/管理面板"
 msgid "Brush composite"
 msgstr "笔刷混合模式"
 
-#: libs/ui/kis_paintop_box.cc:1338 libs/ui/kis_paintop_box.cc:1360
-#: libs/ui/kis_paintop_box.cc:1374
+#: libs/ui/kis_paintop_box.cc:1344 libs/ui/kis_paintop_box.cc:1366
+#: libs/ui/kis_paintop_box.cc:1380
 #, kde-format
 msgid ""
 "%1\n"
@@ -35742,62 +35742,62 @@ msgctxt "(qtundo-format)"
 msgid "Clone Document"
 msgstr "复制图像副本"
 
-#: libs/ui/KisDocument.cpp:792
+#: libs/ui/KisDocument.cpp:793
 #, kde-format
 msgid "%1 cannot be written to. Please save under a different name."
 msgstr "无法写入 %1 。请换一个文件名保存。"
 
-#: libs/ui/KisDocument.cpp:843
+#: libs/ui/KisDocument.cpp:844
 #, kde-format
 msgctxt "Saving error message"
 msgid "Failed to create a backup file"
 msgstr "创建备份文件失败"
 
-#: libs/ui/KisDocument.cpp:860
+#: libs/ui/KisDocument.cpp:861
 #, kde-format
 msgctxt "Saving error message"
 msgid "Failed to create a numbered backup file"
 msgstr "创建数字文件名序列的备份文件失败"
 
-#: libs/ui/KisDocument.cpp:882
+#: libs/ui/KisDocument.cpp:883
 #, kde-format
 msgid "Exporting Document..."
 msgstr "正在导出图像..."
 
-#: libs/ui/KisDocument.cpp:883
+#: libs/ui/KisDocument.cpp:884
 #, kde-format
 msgid "Saving Document..."
 msgstr "正在保存图像..."
 
-#: libs/ui/KisDocument.cpp:898
+#: libs/ui/KisDocument.cpp:899
 #, kde-format
 msgid ""
 "Could not start saving %1. Wait until the current save operation has "
 "finished."
 msgstr "无法开始 %1 的保存操作。请在当前的保存操作结束后重试。"
 
-#: libs/ui/KisDocument.cpp:903
+#: libs/ui/KisDocument.cpp:904
 #, kde-format
 msgid "Could not start saving %1. Image is busy"
 msgstr "无法开始 %1 的保存操作。图像正忙"
 
-#: libs/ui/KisDocument.cpp:908
+#: libs/ui/KisDocument.cpp:909
 #, kde-format
 msgid "Could not start saving %1. Unknown failure has happened"
 msgstr "无法开始 %1 的保存操作。发生了未知错误"
 
-#: libs/ui/KisDocument.cpp:1051
+#: libs/ui/KisDocument.cpp:1054
 #, kde-format
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during saving %1: %2"
 msgstr "保存 %1 时出错：%2"
 
-#: libs/ui/KisDocument.cpp:1058
+#: libs/ui/KisDocument.cpp:1061
 #, kde-format
 msgid "Could not save %1."
 msgstr "无法保存 %1。"
 
-#: libs/ui/KisDocument.cpp:1075
+#: libs/ui/KisDocument.cpp:1078
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the "
@@ -35805,45 +35805,45 @@ msgctxt ""
 msgid "%1 has been saved but is incomplete."
 msgstr "%1 已被保存，但不完整。"
 
-#: libs/ui/KisDocument.cpp:1081
+#: libs/ui/KisDocument.cpp:1084
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the document"
 msgid "Some problems were encountered when saving."
 msgstr "保存时遇到了一些问题。"
 
-#: libs/ui/KisDocument.cpp:1098
+#: libs/ui/KisDocument.cpp:1101
 #, kde-format
 msgid "Finished saving %1"
 msgstr "已完成保存 %1"
 
-#: libs/ui/KisDocument.cpp:1539
+#: libs/ui/KisDocument.cpp:1542
 #, kde-format
 msgid "Autosaving... %1"
 msgstr "正在自动保存... %1"
 
-#: libs/ui/KisDocument.cpp:1547
+#: libs/ui/KisDocument.cpp:1550
 #, kde-format
 msgid "Autosaving..."
 msgstr "正在自动保存..."
 
-#: libs/ui/KisDocument.cpp:1553
+#: libs/ui/KisDocument.cpp:1556
 #, kde-format
 msgid "Autosaving postponed: document is busy..."
 msgstr "自动保存已推迟：图像正被占用..."
 
-#: libs/ui/KisDocument.cpp:1696
+#: libs/ui/KisDocument.cpp:1699
 #, kde-format
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during autosaving %1: %2"
 msgstr "自动保存 %1 时出错：%2"
 
-#: libs/ui/KisDocument.cpp:1710
+#: libs/ui/KisDocument.cpp:1713
 #, kde-format
 msgid "Finished autosaving %1"
 msgstr "已完成自动保存 %1"
 
-#: libs/ui/KisDocument.cpp:1967
+#: libs/ui/KisDocument.cpp:1970
 #, kde-format
 msgid ""
 "Malformed Path\n"
@@ -35852,38 +35852,38 @@ msgstr ""
 "路径格式错误\n"
 "%1"
 
-#: libs/ui/KisDocument.cpp:2039
+#: libs/ui/KisDocument.cpp:2042
 #, kde-format
 msgid "File %1 does not exist."
 msgstr "文件 %1 不存在。"
 
-#: libs/ui/KisDocument.cpp:2068
+#: libs/ui/KisDocument.cpp:2071
 #, kde-format
 msgid "Opening document"
 msgstr "正在打开图像"
 
-#: libs/ui/KisDocument.cpp:2083
+#: libs/ui/KisDocument.cpp:2086
 #, kde-format
 msgid "Could not open %1."
 msgstr "无法打开 %1。"
 
-#: libs/ui/KisDocument.cpp:2094
+#: libs/ui/KisDocument.cpp:2097
 #, kde-format
 msgid "There were problems opening %1."
 msgstr "打开 %1 时遇到问题。"
 
-#: libs/ui/KisDocument.cpp:2232
+#: libs/ui/KisDocument.cpp:2235
 #, kde-format
 msgid "Not Saved"
 msgstr "未保存图像"
 
-#: libs/ui/KisDocument.cpp:2708
+#: libs/ui/KisDocument.cpp:2711
 #, kde-format
 msgctxt "Name of automatically created background color fill layer"
 msgid "Background Fill"
 msgstr "背景色填充"
 
-#: libs/ui/KisDocument.cpp:2770
+#: libs/ui/KisDocument.cpp:2773
 #, kde-format
 msgctxt ""
 "progress dialog message when the user closes the document that is being saved"
@@ -38041,7 +38041,7 @@ msgstr "笔刷工具无法在此图层绘画，请选中一个颜料图层或者
 #: libs/ui/tool/kis_tool_polyline_base.cpp:122
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:164
 #: libs/ui/tool/KisToolOutlineBase.cpp:169
-#: plugins/tools/basictools/kis_tool_ellipse.cc:167
+#: plugins/tools/basictools/kis_tool_ellipse.cc:169
 #: plugins/tools/basictools/kis_tool_line.cc:212
 #: plugins/tools/basictools/kis_tool_path.cc:91
 #: plugins/tools/basictools/kis_tool_pencil.cc:64
@@ -38054,7 +38054,7 @@ msgstr "MyPaint 笔刷引擎不能在此色彩空间中使用"
 #: libs/ui/tool/kis_tool_polyline_base.cpp:116
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:158
 #: libs/ui/tool/KisToolOutlineBase.cpp:163
-#: plugins/tools/basictools/kis_tool_ellipse.cc:160
+#: plugins/tools/basictools/kis_tool_ellipse.cc:162
 #: plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp:69
 #, kde-format
 msgid ""
@@ -40334,7 +40334,6 @@ msgid "%1:"
 msgstr "%1："
 
 #: libs/widgets/kis_color_input.cpp:337
-#: libs/widgets/KoEditColorSetDialog.cpp:158
 #, kde-format
 msgid "Color name:"
 msgstr "颜色名称："
@@ -40750,29 +40749,6 @@ msgstr "浮动显示面板"
 msgctxt "@info:tooltip"
 msgid "Close Docker"
 msgstr "关闭面板"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:158
-#, kde-format
-msgid "Add Color To Palette"
-msgstr "添加颜色至色板"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#, kde-format
-msgid "Cannot write to palette file %1. Maybe it is read-only. "
-msgstr "无法写入色板文件 %1。它可能是只读文件。 "
-
-#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
-#: plugins/filters/palettize/palettize.ui:39
-#, kde-format
-msgid "Palette"
-msgstr "色板"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:215
-#, kde-format
-msgid "Add/Remove Colors"
-msgstr "添加/移除颜色"
 
 #: libs/widgets/KoResourceServerProvider.cpp:44
 #, kde-format
@@ -42207,7 +42183,7 @@ msgstr "透视"
 msgid "Perspective Ellipse assistant"
 msgstr "透视椭圆辅助尺"
 
-#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:632
+#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:623
 #, kde-format
 msgid "Perspective Ellipse"
 msgstr "透视椭圆"
@@ -42248,7 +42224,7 @@ msgstr "两点透视"
 msgid "Vanishing Point assistant"
 msgstr "灭点辅助尺"
 
-#: plugins/assistants/Assistants/VanishingPointAssistant.cc:341
+#: plugins/assistants/Assistants/VanishingPointAssistant.cc:338
 #, kde-format
 msgid "Vanishing Point"
 msgstr "灭点"
@@ -44490,6 +44466,13 @@ msgstr "导航器 = 总览图"
 msgctxt "Make the controls in the overview docker auto-hide or always visible"
 msgid "Pin navigation controls"
 msgstr "始终显示导航控件"
+
+#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
+#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
+#: plugins/filters/palettize/palettize.ui:39
+#, kde-format
+msgid "Palette"
+msgstr "色板"
 
 #: plugins/dockers/palettedocker/palettedocker_dock.cpp:66
 #, kde-format
@@ -65007,6 +64990,7 @@ msgid "Activate Brush Preset {num}"
 msgstr "激活笔刷预设 {num}"
 
 #: plugins/python/tenbrushes/tenbrushes.py:121
+#, python-brace-format
 msgid ""
 "{}\n"
 "selected"
@@ -65678,55 +65662,55 @@ msgstr "启用橡皮擦的吸附功能"
 msgid "Color Sampler Tool"
 msgstr "拾色器工具"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:76
+#: plugins/tools/basictools/kis_tool_ellipse.cc:78
 #, fuzzy, kde-format
 #| msgid "Bounding Box"
 msgctxt "Ellipse tool placement mode"
 msgid "Bounding Box"
 msgstr "边框"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:77
+#: plugins/tools/basictools/kis_tool_ellipse.cc:79
 #, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "3-Point"
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:78
+#: plugins/tools/basictools/kis_tool_ellipse.cc:80
 #, kde-format
 msgid "Place the ellipse inside a bounding box"
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:79
+#: plugins/tools/basictools/kis_tool_ellipse.cc:81
 #, kde-format
 msgid "Place the ellipse by setting the major axis and width"
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:110
+#: plugins/tools/basictools/kis_tool_ellipse.cc:112
 #, fuzzy, kde-format
 #| msgid "Element"
 msgctxt "Ellipse tool placement mode option label"
 msgid "Placement:"
 msgstr "元素"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:343
+#: plugins/tools/basictools/kis_tool_ellipse.cc:345
 #, kde-format
 msgid "Click to place the other end of the ellipse axis."
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:345
+#: plugins/tools/basictools/kis_tool_ellipse.cc:347
 #, kde-format
 msgid "Click to set the ellipse width."
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:347
+#: plugins/tools/basictools/kis_tool_ellipse.cc:349
 #, kde-format
 msgid ""
 "Drag handles to adjust the ellipse. Press Enter to apply or Esc to cancel."
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:584
-#: plugins/tools/basictools/kis_tool_ellipse.cc:606
-#: plugins/tools/basictools/kis_tool_ellipse.cc:623
+#: plugins/tools/basictools/kis_tool_ellipse.cc:587
+#: plugins/tools/basictools/kis_tool_ellipse.cc:609
+#: plugins/tools/basictools/kis_tool_ellipse.cc:626
 msgctxt "(qtundo-format)"
 msgid "Draw Ellipse"
 msgstr "绘制椭圆"
@@ -70233,6 +70217,15 @@ msgstr ""
 "切换全范围/子范围模式。\n"
 "全范围：[%1, %2]\n"
 "子范围：[%3, %4]"
+
+#~ msgid "Add Color To Palette"
+#~ msgstr "添加颜色至色板"
+
+#~ msgid "Cannot write to palette file %1. Maybe it is read-only. "
+#~ msgstr "无法写入色板文件 %1。它可能是只读文件。 "
+
+#~ msgid "Add/Remove Colors"
+#~ msgstr "添加/移除颜色"
 
 #~ msgid "&Zoom In"
 #~ msgstr "放大(&Z)"

@@ -97,7 +97,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: krita\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-11-06 00:48+0000\n"
+"POT-Creation-Date: 2026-11-13 00:55+0000\n"
 "PO-Revision-Date: 2012-11-26 15:40+0200\n"
 "Last-Translator: Stelios <sstavra@gmail.com>\n"
 "Language-Team: Greek <kde-i18n-el@kde.org>\n"
@@ -22255,7 +22255,7 @@ msgstr "Εισαγωγή εικόνας"
 
 #. i18n.
 #: libs/image/kis_image.cc:762 libs/ui/kis_import_catcher.cc:50
-#: libs/ui/KisDocument.cpp:2701 plugins/impex/psd/psd_loader.cpp:221
+#: libs/ui/KisDocument.cpp:2704 plugins/impex/psd/psd_loader.cpp:221
 #, fuzzy, kde-format
 #| msgid "Background"
 msgctxt "Name for the bottom-most layer in the layerstack"
@@ -24932,9 +24932,9 @@ msgstr "Αρχεία πηγής:"
 #: libs/ui/kis_node_manager.cpp:1384 libs/ui/KisApplication.cpp:1230
 #: libs/ui/KisApplication.cpp:1233 libs/ui/KisApplication.cpp:1249
 #: libs/ui/KisApplication.cpp:1281 libs/ui/KisApplication.cpp:1295
-#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1057
-#: libs/ui/KisDocument.cpp:1072 libs/ui/KisDocument.cpp:2039
-#: libs/ui/KisDocument.cpp:2082 libs/ui/KisDocument.cpp:2093
+#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1060
+#: libs/ui/KisDocument.cpp:1075 libs/ui/KisDocument.cpp:2042
+#: libs/ui/KisDocument.cpp:2085 libs/ui/KisDocument.cpp:2096
 #: libs/ui/KisMainWindow.cpp:1049 libs/ui/KisMainWindow.cpp:1119
 #: libs/ui/KisMainWindow.cpp:1263 libs/ui/KisMainWindow.cpp:1360
 #: libs/ui/KisMainWindow.cpp:2107 libs/ui/KisMainWindow.cpp:2116
@@ -36224,8 +36224,8 @@ msgstr "Επιλογή χώρου εργασίας"
 msgid "Brush composite"
 msgstr "Μέγεθος πινέλου"
 
-#: libs/ui/kis_paintop_box.cc:1338 libs/ui/kis_paintop_box.cc:1360
-#: libs/ui/kis_paintop_box.cc:1374
+#: libs/ui/kis_paintop_box.cc:1344 libs/ui/kis_paintop_box.cc:1366
+#: libs/ui/kis_paintop_box.cc:1380
 #, fuzzy, kde-format
 msgid ""
 "%1\n"
@@ -36875,65 +36875,65 @@ msgctxt "(qtundo-format)"
 msgid "Clone Document"
 msgstr "Άνοιγμα σε νέα έγγραφα"
 
-#: libs/ui/KisDocument.cpp:792
+#: libs/ui/KisDocument.cpp:793
 #, kde-format
 msgid "%1 cannot be written to. Please save under a different name."
 msgstr ""
 
-#: libs/ui/KisDocument.cpp:843
+#: libs/ui/KisDocument.cpp:844
 #, fuzzy, kde-format
 #| msgid "Failed to create an action."
 msgctxt "Saving error message"
 msgid "Failed to create a backup file"
 msgstr "Αποτυχία δημιουργίας ενέργειας."
 
-#: libs/ui/KisDocument.cpp:860
+#: libs/ui/KisDocument.cpp:861
 #, fuzzy, kde-format
 #| msgid "Failed to create an action."
 msgctxt "Saving error message"
 msgid "Failed to create a numbered backup file"
 msgstr "Αποτυχία δημιουργίας ενέργειας."
 
-#: libs/ui/KisDocument.cpp:882
+#: libs/ui/KisDocument.cpp:883
 #, fuzzy, kde-format
 msgid "Exporting Document..."
 msgstr "Άνοιγμα σε νέα έγγραφα"
 
-#: libs/ui/KisDocument.cpp:883
+#: libs/ui/KisDocument.cpp:884
 #, fuzzy, kde-format
 msgid "Saving Document..."
 msgstr "Αποθήκευση εγγράφου"
 
-#: libs/ui/KisDocument.cpp:898
+#: libs/ui/KisDocument.cpp:899
 #, kde-format
 msgid ""
 "Could not start saving %1. Wait until the current save operation has "
 "finished."
 msgstr ""
 
-#: libs/ui/KisDocument.cpp:903
+#: libs/ui/KisDocument.cpp:904
 #, fuzzy, kde-format
 msgid "Could not start saving %1. Image is busy"
 msgstr "Αδυναμία προσθήκης του στρώματος στην εικόνα."
 
-#: libs/ui/KisDocument.cpp:908
+#: libs/ui/KisDocument.cpp:909
 #, fuzzy, kde-format
 msgid "Could not start saving %1. Unknown failure has happened"
 msgstr "Αδυναμία προσθήκης του στρώματος στην εικόνα."
 
-#: libs/ui/KisDocument.cpp:1051
+#: libs/ui/KisDocument.cpp:1054
 #, fuzzy, kde-format
 #| msgid "Error during autosave! Partition full?"
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during saving %1: %2"
 msgstr "Σφάλμα κατά την αυτόματη αποθήκευση! Είναι η κατάτμηση πλήρης;"
 
-#: libs/ui/KisDocument.cpp:1058
+#: libs/ui/KisDocument.cpp:1061
 #, fuzzy, kde-format
 msgid "Could not save %1."
 msgstr "Αδυναμία προσθήκης του στρώματος στην εικόνα."
 
-#: libs/ui/KisDocument.cpp:1075
+#: libs/ui/KisDocument.cpp:1078
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the "
@@ -36941,47 +36941,47 @@ msgctxt ""
 msgid "%1 has been saved but is incomplete."
 msgstr ""
 
-#: libs/ui/KisDocument.cpp:1081
+#: libs/ui/KisDocument.cpp:1084
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the document"
 msgid "Some problems were encountered when saving."
 msgstr ""
 
-#: libs/ui/KisDocument.cpp:1098
+#: libs/ui/KisDocument.cpp:1101
 #, fuzzy, kde-format
 msgid "Finished saving %1"
 msgstr "&Τερματισμός συνεχούς γραμμής"
 
-#: libs/ui/KisDocument.cpp:1539
+#: libs/ui/KisDocument.cpp:1542
 #, fuzzy, kde-format
 #| msgid "Autosaving..."
 msgid "Autosaving... %1"
 msgstr "Αυτόματη αποθήκευση..."
 
-#: libs/ui/KisDocument.cpp:1547
+#: libs/ui/KisDocument.cpp:1550
 #, kde-format
 msgid "Autosaving..."
 msgstr "Αυτόματη αποθήκευση..."
 
-#: libs/ui/KisDocument.cpp:1553
+#: libs/ui/KisDocument.cpp:1556
 #, kde-format
 msgid "Autosaving postponed: document is busy..."
 msgstr ""
 
-#: libs/ui/KisDocument.cpp:1696
+#: libs/ui/KisDocument.cpp:1699
 #, fuzzy, kde-format
 #| msgid "Error during autosave! Partition full?"
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during autosaving %1: %2"
 msgstr "Σφάλμα κατά την αυτόματη αποθήκευση! Είναι η κατάτμηση πλήρης;"
 
-#: libs/ui/KisDocument.cpp:1710
+#: libs/ui/KisDocument.cpp:1713
 #, fuzzy, kde-format
 msgid "Finished autosaving %1"
 msgstr "&Τερματισμός συνεχούς γραμμής"
 
-#: libs/ui/KisDocument.cpp:1967
+#: libs/ui/KisDocument.cpp:1970
 #, fuzzy, kde-format
 #| msgid ""
 #| "Malformed URL\n"
@@ -36993,41 +36993,41 @@ msgstr ""
 "Λανθασμένο URL\n"
 "%1"
 
-#: libs/ui/KisDocument.cpp:2039
+#: libs/ui/KisDocument.cpp:2042
 #, fuzzy, kde-format
 #| msgid "The file %1 does not exist."
 msgid "File %1 does not exist."
 msgstr "Το αρχείο %1 δεν υπάρχει."
 
-#: libs/ui/KisDocument.cpp:2068
+#: libs/ui/KisDocument.cpp:2071
 #, fuzzy, kde-format
 msgid "Opening document"
 msgstr "Άνοιγμα σε νέα έγγραφα"
 
-#: libs/ui/KisDocument.cpp:2083
+#: libs/ui/KisDocument.cpp:2086
 #, fuzzy, kde-format
 msgid "Could not open %1."
 msgstr "Αδυναμία προσθήκης του στρώματος στην εικόνα."
 
-#: libs/ui/KisDocument.cpp:2094
+#: libs/ui/KisDocument.cpp:2097
 #, kde-format
 msgid "There were problems opening %1."
 msgstr ""
 
-#: libs/ui/KisDocument.cpp:2232
+#: libs/ui/KisDocument.cpp:2235
 #, fuzzy, kde-format
 #| msgid "Not Filled"
 msgid "Not Saved"
 msgstr "Χωρίς γέμισμα"
 
-#: libs/ui/KisDocument.cpp:2708
+#: libs/ui/KisDocument.cpp:2711
 #, fuzzy, kde-format
 #| msgid "Background"
 msgctxt "Name of automatically created background color fill layer"
 msgid "Background Fill"
 msgstr "Φόντο"
 
-#: libs/ui/KisDocument.cpp:2770
+#: libs/ui/KisDocument.cpp:2773
 #, fuzzy, kde-format
 #| msgid "Fetching the title: 0% complete"
 msgctxt ""
@@ -39231,7 +39231,7 @@ msgstr ""
 #: libs/ui/tool/kis_tool_polyline_base.cpp:122
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:164
 #: libs/ui/tool/KisToolOutlineBase.cpp:169
-#: plugins/tools/basictools/kis_tool_ellipse.cc:167
+#: plugins/tools/basictools/kis_tool_ellipse.cc:169
 #: plugins/tools/basictools/kis_tool_line.cc:212
 #: plugins/tools/basictools/kis_tool_path.cc:91
 #: plugins/tools/basictools/kis_tool_pencil.cc:64
@@ -39244,7 +39244,7 @@ msgstr ""
 #: libs/ui/tool/kis_tool_polyline_base.cpp:116
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:158
 #: libs/ui/tool/KisToolOutlineBase.cpp:163
-#: plugins/tools/basictools/kis_tool_ellipse.cc:160
+#: plugins/tools/basictools/kis_tool_ellipse.cc:162
 #: plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp:69
 #, kde-format
 msgid ""
@@ -41491,7 +41491,6 @@ msgid "%1:"
 msgstr "%1:"
 
 #: libs/widgets/kis_color_input.cpp:337
-#: libs/widgets/KoEditColorSetDialog.cpp:158
 #, kde-format
 msgid "Color name:"
 msgstr "Όνομα χρώματος:"
@@ -41930,30 +41929,6 @@ msgstr "Εμφάνιση προσαρτήσεων"
 msgctxt "@info:tooltip"
 msgid "Close Docker"
 msgstr "Κλείσιμο εγγράφου"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:158
-#, kde-format
-msgid "Add Color To Palette"
-msgstr "Προσθήκη χρώματος στην παλέτα"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#, kde-format
-msgid "Cannot write to palette file %1. Maybe it is read-only. "
-msgstr ""
-"Αδυναμία εγγραφής του αρχείου παλέτας %1. Ίσως είναι μόνο για ανάγνωση. "
-
-#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
-#: plugins/filters/palettize/palettize.ui:39
-#, kde-format
-msgid "Palette"
-msgstr "Παλέτα"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:215
-#, kde-format
-msgid "Add/Remove Colors"
-msgstr "Προσθήκη/αφαίρεση χρωμάτων"
 
 #: libs/widgets/KoResourceServerProvider.cpp:44
 #, fuzzy, kde-format
@@ -43370,7 +43345,7 @@ msgstr "Προοπτική"
 msgid "Perspective Ellipse assistant"
 msgstr "Βοηθός προοπτικής"
 
-#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:632
+#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:623
 #, fuzzy, kde-format
 #| msgid "Perspective grid"
 msgid "Perspective Ellipse"
@@ -43415,7 +43390,7 @@ msgstr "Προοπτική"
 msgid "Vanishing Point assistant"
 msgstr "Βοηθοί ζωγραφικής"
 
-#: plugins/assistants/Assistants/VanishingPointAssistant.cc:341
+#: plugins/assistants/Assistants/VanishingPointAssistant.cc:338
 #, fuzzy, kde-format
 msgid "Vanishing Point"
 msgstr "Επιλογές"
@@ -45762,6 +45737,13 @@ msgstr "Περίληψη"
 msgctxt "Make the controls in the overview docker auto-hide or always visible"
 msgid "Pin navigation controls"
 msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
+#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
+#: plugins/filters/palettize/palettize.ui:39
+#, kde-format
+msgid "Palette"
+msgstr "Παλέτα"
 
 #: plugins/dockers/palettedocker/palettedocker_dock.cpp:66
 #, fuzzy, kde-format
@@ -67064,7 +67046,7 @@ msgid "Activate Brush Preset {num}"
 msgstr "Προρυθμίσεις πινέλου"
 
 #: plugins/python/tenbrushes/tenbrushes.py:121
-#, fuzzy
+#, fuzzy, python-brace-format
 msgid ""
 "{}\n"
 "selected"
@@ -67845,55 +67827,55 @@ msgstr ""
 msgid "Color Sampler Tool"
 msgstr "Επιλογέας χρωμάτων"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:76
+#: plugins/tools/basictools/kis_tool_ellipse.cc:78
 #, fuzzy, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "Bounding Box"
 msgstr "Περιοριστικό πλαίσιο του σχήματος"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:77
+#: plugins/tools/basictools/kis_tool_ellipse.cc:79
 #, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "3-Point"
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:78
+#: plugins/tools/basictools/kis_tool_ellipse.cc:80
 #, kde-format
 msgid "Place the ellipse inside a bounding box"
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:79
+#: plugins/tools/basictools/kis_tool_ellipse.cc:81
 #, kde-format
 msgid "Place the ellipse by setting the major axis and width"
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:110
+#: plugins/tools/basictools/kis_tool_ellipse.cc:112
 #, fuzzy, kde-format
 #| msgid "Placement"
 msgctxt "Ellipse tool placement mode option label"
 msgid "Placement:"
 msgstr "Τοποθέτηση"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:343
+#: plugins/tools/basictools/kis_tool_ellipse.cc:345
 #, kde-format
 msgid "Click to place the other end of the ellipse axis."
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:345
+#: plugins/tools/basictools/kis_tool_ellipse.cc:347
 #, fuzzy, kde-format
 #| msgid "Click to select text shape."
 msgid "Click to set the ellipse width."
 msgstr "Κάνετε κλικ για επιλογή σχήματος κειμένου."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:347
+#: plugins/tools/basictools/kis_tool_ellipse.cc:349
 #, kde-format
 msgid ""
 "Drag handles to adjust the ellipse. Press Enter to apply or Esc to cancel."
 msgstr ""
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:584
-#: plugins/tools/basictools/kis_tool_ellipse.cc:606
-#: plugins/tools/basictools/kis_tool_ellipse.cc:623
+#: plugins/tools/basictools/kis_tool_ellipse.cc:587
+#: plugins/tools/basictools/kis_tool_ellipse.cc:609
+#: plugins/tools/basictools/kis_tool_ellipse.cc:626
 #, fuzzy
 msgctxt "(qtundo-format)"
 msgid "Draw Ellipse"
@@ -72630,6 +72612,16 @@ msgid ""
 "Full range: [%1, %2]\n"
 "Subrange: [%3, %4]"
 msgstr ""
+
+#~ msgid "Add Color To Palette"
+#~ msgstr "Προσθήκη χρώματος στην παλέτα"
+
+#~ msgid "Cannot write to palette file %1. Maybe it is read-only. "
+#~ msgstr ""
+#~ "Αδυναμία εγγραφής του αρχείου παλέτας %1. Ίσως είναι μόνο για ανάγνωση. "
+
+#~ msgid "Add/Remove Colors"
+#~ msgstr "Προσθήκη/αφαίρεση χρωμάτων"
 
 #, fuzzy
 #~| msgid "Zoom In"

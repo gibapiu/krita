@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: krita\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2026-11-06 00:48+0000\n"
-"PO-Revision-Date: 2026-11-05 09:46+0100\n"
+"POT-Creation-Date: 2026-11-13 00:55+0000\n"
+"PO-Revision-Date: 2026-11-12 20:04+0100\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca@valencia\n"
@@ -21775,7 +21775,7 @@ msgstr "Imatge importada"
 
 #. i18n.
 #: libs/image/kis_image.cc:762 libs/ui/kis_import_catcher.cc:50
-#: libs/ui/KisDocument.cpp:2701 plugins/impex/psd/psd_loader.cpp:221
+#: libs/ui/KisDocument.cpp:2704 plugins/impex/psd/psd_loader.cpp:221
 #, kde-format
 msgctxt "Name for the bottom-most layer in the layerstack"
 msgid "Background"
@@ -24274,9 +24274,9 @@ msgstr "Recursos locals"
 #: libs/ui/kis_node_manager.cpp:1384 libs/ui/KisApplication.cpp:1230
 #: libs/ui/KisApplication.cpp:1233 libs/ui/KisApplication.cpp:1249
 #: libs/ui/KisApplication.cpp:1281 libs/ui/KisApplication.cpp:1295
-#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1057
-#: libs/ui/KisDocument.cpp:1072 libs/ui/KisDocument.cpp:2039
-#: libs/ui/KisDocument.cpp:2082 libs/ui/KisDocument.cpp:2093
+#: libs/ui/KisApplication.cpp:1323 libs/ui/KisDocument.cpp:1060
+#: libs/ui/KisDocument.cpp:1075 libs/ui/KisDocument.cpp:2042
+#: libs/ui/KisDocument.cpp:2085 libs/ui/KisDocument.cpp:2096
 #: libs/ui/KisMainWindow.cpp:1049 libs/ui/KisMainWindow.cpp:1119
 #: libs/ui/KisMainWindow.cpp:1263 libs/ui/KisMainWindow.cpp:1360
 #: libs/ui/KisMainWindow.cpp:2107 libs/ui/KisMainWindow.cpp:2116
@@ -27954,7 +27954,7 @@ msgid ""
 "when using WinTab tablet API)"
 msgstr ""
 "Utilitza les marques de temps del controlador de la tauleta per a la "
-"velocitat del pinzell (pot causar defectes severs en utilitzar l'API de la "
+"velocitat del pinzell (pot causar defectes greus en utilitzar l'API de la "
 "tauleta WinTab)"
 
 #: libs/ui/dialogs/kis_dlg_preferences.cc:1821
@@ -35516,8 +35516,8 @@ msgstr "Tria l'espai de treball"
 msgid "Brush composite"
 msgstr "Composició del pinzell"
 
-#: libs/ui/kis_paintop_box.cc:1338 libs/ui/kis_paintop_box.cc:1360
-#: libs/ui/kis_paintop_box.cc:1374
+#: libs/ui/kis_paintop_box.cc:1344 libs/ui/kis_paintop_box.cc:1366
+#: libs/ui/kis_paintop_box.cc:1380
 #, kde-format
 msgid ""
 "%1\n"
@@ -36214,34 +36214,34 @@ msgctxt "(qtundo-format)"
 msgid "Clone Document"
 msgstr "Clona el document"
 
-#: libs/ui/KisDocument.cpp:792
+#: libs/ui/KisDocument.cpp:793
 #, kde-format
 msgid "%1 cannot be written to. Please save under a different name."
 msgstr "No es pot escriure a %1. Guardeu-ho amb un nom diferent."
 
-#: libs/ui/KisDocument.cpp:843
+#: libs/ui/KisDocument.cpp:844
 #, kde-format
 msgctxt "Saving error message"
 msgid "Failed to create a backup file"
 msgstr "Ha fallat mentre es creava un fitxer de còpia de seguretat"
 
-#: libs/ui/KisDocument.cpp:860
+#: libs/ui/KisDocument.cpp:861
 #, kde-format
 msgctxt "Saving error message"
 msgid "Failed to create a numbered backup file"
 msgstr "Ha fallat mentre es creava un fitxer de còpia de seguretat numerat"
 
-#: libs/ui/KisDocument.cpp:882
+#: libs/ui/KisDocument.cpp:883
 #, kde-format
 msgid "Exporting Document..."
 msgstr "S'està exportant el document…"
 
-#: libs/ui/KisDocument.cpp:883
+#: libs/ui/KisDocument.cpp:884
 #, kde-format
 msgid "Saving Document..."
 msgstr "S'està guardant el document…"
 
-#: libs/ui/KisDocument.cpp:898
+#: libs/ui/KisDocument.cpp:899
 #, kde-format
 msgid ""
 "Could not start saving %1. Wait until the current save operation has "
@@ -36250,29 +36250,29 @@ msgstr ""
 "No s'ha pogut iniciar la guardada de %1. Espereu fins que finalitze "
 "l'operació actual de guardada."
 
-#: libs/ui/KisDocument.cpp:903
+#: libs/ui/KisDocument.cpp:904
 #, kde-format
 msgid "Could not start saving %1. Image is busy"
 msgstr "No s'ha pogut iniciar la guardada de %1. La imatge està activa"
 
-#: libs/ui/KisDocument.cpp:908
+#: libs/ui/KisDocument.cpp:909
 #, kde-format
 msgid "Could not start saving %1. Unknown failure has happened"
 msgstr ""
 "No s'ha pogut iniciar la guardada de %1. Hi ha hagut una fallada desconeguda"
 
-#: libs/ui/KisDocument.cpp:1051
+#: libs/ui/KisDocument.cpp:1054
 #, kde-format
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during saving %1: %2"
 msgstr "S'ha produït un error mentre es guardava %1: %2"
 
-#: libs/ui/KisDocument.cpp:1058
+#: libs/ui/KisDocument.cpp:1061
 #, kde-format
 msgid "Could not save %1."
 msgstr "No s'ha pogut guardar «%1»."
 
-#: libs/ui/KisDocument.cpp:1075
+#: libs/ui/KisDocument.cpp:1078
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the "
@@ -36280,45 +36280,45 @@ msgctxt ""
 msgid "%1 has been saved but is incomplete."
 msgstr "%1 s'ha guardat, però està incomplet."
 
-#: libs/ui/KisDocument.cpp:1081
+#: libs/ui/KisDocument.cpp:1084
 #, kde-format
 msgctxt ""
 "dialog box shown to the user if there were warnings while saving the document"
 msgid "Some problems were encountered when saving."
 msgstr "S'han trobat diversos problemes mentre es guardava."
 
-#: libs/ui/KisDocument.cpp:1098
+#: libs/ui/KisDocument.cpp:1101
 #, kde-format
 msgid "Finished saving %1"
 msgstr "%1 ha finalitzat la guardada"
 
-#: libs/ui/KisDocument.cpp:1539
+#: libs/ui/KisDocument.cpp:1542
 #, kde-format
 msgid "Autosaving... %1"
 msgstr "S'està guardant automàticament… %1"
 
-#: libs/ui/KisDocument.cpp:1547
+#: libs/ui/KisDocument.cpp:1550
 #, kde-format
 msgid "Autosaving..."
 msgstr "S'està guardant automàticament…"
 
-#: libs/ui/KisDocument.cpp:1553
+#: libs/ui/KisDocument.cpp:1556
 #, kde-format
 msgid "Autosaving postponed: document is busy..."
 msgstr "La guardada automàtica es posposa: el document està ocupat…"
 
-#: libs/ui/KisDocument.cpp:1696
+#: libs/ui/KisDocument.cpp:1699
 #, kde-format
 msgctxt "%1 --- failing file name, %2 --- error message"
 msgid "Error during autosaving %1: %2"
 msgstr "S'ha produït un error durant en guardar automàticament %1: %2"
 
-#: libs/ui/KisDocument.cpp:1710
+#: libs/ui/KisDocument.cpp:1713
 #, kde-format
 msgid "Finished autosaving %1"
 msgstr "%1 ha finalitzat la guardada automàtica"
 
-#: libs/ui/KisDocument.cpp:1967
+#: libs/ui/KisDocument.cpp:1970
 #, kde-format
 msgid ""
 "Malformed Path\n"
@@ -36327,38 +36327,38 @@ msgstr ""
 "Camí amb format incorrecte\n"
 "%1"
 
-#: libs/ui/KisDocument.cpp:2039
+#: libs/ui/KisDocument.cpp:2042
 #, kde-format
 msgid "File %1 does not exist."
 msgstr "El fitxer %1 no existix."
 
-#: libs/ui/KisDocument.cpp:2068
+#: libs/ui/KisDocument.cpp:2071
 #, kde-format
 msgid "Opening document"
 msgstr "Obertura de document"
 
-#: libs/ui/KisDocument.cpp:2083
+#: libs/ui/KisDocument.cpp:2086
 #, kde-format
 msgid "Could not open %1."
 msgstr "No s'ha pogut obrir %1."
 
-#: libs/ui/KisDocument.cpp:2094
+#: libs/ui/KisDocument.cpp:2097
 #, kde-format
 msgid "There were problems opening %1."
 msgstr "Hi ha hagut problemes mentre s'obria %1."
 
-#: libs/ui/KisDocument.cpp:2232
+#: libs/ui/KisDocument.cpp:2235
 #, kde-format
 msgid "Not Saved"
 msgstr "Sense guardar"
 
-#: libs/ui/KisDocument.cpp:2708
+#: libs/ui/KisDocument.cpp:2711
 #, kde-format
 msgctxt "Name of automatically created background color fill layer"
 msgid "Background Fill"
 msgstr "Emplenat del fons"
 
-#: libs/ui/KisDocument.cpp:2770
+#: libs/ui/KisDocument.cpp:2773
 #, kde-format
 msgctxt ""
 "progress dialog message when the user closes the document that is being saved"
@@ -38573,7 +38573,7 @@ msgstr ""
 #: libs/ui/tool/kis_tool_polyline_base.cpp:122
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:164
 #: libs/ui/tool/KisToolOutlineBase.cpp:169
-#: plugins/tools/basictools/kis_tool_ellipse.cc:167
+#: plugins/tools/basictools/kis_tool_ellipse.cc:169
 #: plugins/tools/basictools/kis_tool_line.cc:212
 #: plugins/tools/basictools/kis_tool_path.cc:91
 #: plugins/tools/basictools/kis_tool_pencil.cc:64
@@ -38587,7 +38587,7 @@ msgstr ""
 #: libs/ui/tool/kis_tool_polyline_base.cpp:116
 #: libs/ui/tool/kis_tool_rectangle_base.cpp:158
 #: libs/ui/tool/KisToolOutlineBase.cpp:163
-#: plugins/tools/basictools/kis_tool_ellipse.cc:160
+#: plugins/tools/basictools/kis_tool_ellipse.cc:162
 #: plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp:69
 #, kde-format
 msgid ""
@@ -40966,7 +40966,6 @@ msgid "%1:"
 msgstr "%1:"
 
 #: libs/widgets/kis_color_input.cpp:337
-#: libs/widgets/KoEditColorSetDialog.cpp:158
 #, kde-format
 msgid "Color name:"
 msgstr "Nom del color:"
@@ -41390,30 +41389,6 @@ msgstr "Acoblador flotant"
 msgctxt "@info:tooltip"
 msgid "Close Docker"
 msgstr "Tanca l'acoblador"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:158
-#, kde-format
-msgid "Add Color To Palette"
-msgstr "Afig color a la paleta"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#, kde-format
-msgid "Cannot write to palette file %1. Maybe it is read-only. "
-msgstr ""
-"No es pot escriure en el fitxer de paleta %1. Potser només és de lectura. "
-
-#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
-#: libs/widgets/KoEditColorSetDialog.cpp:201
-#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
-#: plugins/filters/palettize/palettize.ui:39
-#, kde-format
-msgid "Palette"
-msgstr "Paleta"
-
-#: libs/widgets/KoEditColorSetDialog.cpp:215
-#, kde-format
-msgid "Add/Remove Colors"
-msgstr "Afig/Elimina colors"
 
 #: libs/widgets/KoResourceServerProvider.cpp:44
 #, kde-format
@@ -42902,7 +42877,7 @@ msgstr "Perspectiva"
 msgid "Perspective Ellipse assistant"
 msgstr "Assistent de perspectiva d'el·lipses"
 
-#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:632
+#: plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc:623
 #, kde-format
 msgid "Perspective Ellipse"
 msgstr "Perspectiva d'el·lipses"
@@ -42943,7 +42918,7 @@ msgstr "Perspectiva de 2 punts"
 msgid "Vanishing Point assistant"
 msgstr "Assistents de punt de fuga"
 
-#: plugins/assistants/Assistants/VanishingPointAssistant.cc:341
+#: plugins/assistants/Assistants/VanishingPointAssistant.cc:338
 #, kde-format
 msgid "Vanishing Point"
 msgstr "Punt de fuga"
@@ -45196,6 +45171,13 @@ msgstr "Vista general"
 msgctxt "Make the controls in the overview docker auto-hide or always visible"
 msgid "Pin navigation controls"
 msgstr "Controls de navegació amb pins"
+
+#. i18n: ectx: property (text), widget (QLabel, paletteLabel)
+#: plugins/dockers/palettedocker/palettedocker_dock.cpp:57
+#: plugins/filters/palettize/palettize.ui:39
+#, kde-format
+msgid "Palette"
+msgstr "Paleta"
 
 #: plugins/dockers/palettedocker/palettedocker_dock.cpp:66
 #, kde-format
@@ -66081,6 +66063,7 @@ msgid "Activate Brush Preset {num}"
 msgstr "Activa el pinzell predefinit {num}"
 
 #: plugins/python/tenbrushes/tenbrushes.py:121
+#, python-brace-format
 msgid ""
 "{}\n"
 "selected"
@@ -66762,45 +66745,45 @@ msgstr "Activa l'ajust quan s'utilitzen esborradors"
 msgid "Color Sampler Tool"
 msgstr "Eina «Color de mostra»"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:76
+#: plugins/tools/basictools/kis_tool_ellipse.cc:78
 #, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "Bounding Box"
 msgstr "Quadro contenidor"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:77
+#: plugins/tools/basictools/kis_tool_ellipse.cc:79
 #, kde-format
 msgctxt "Ellipse tool placement mode"
 msgid "3-Point"
 msgstr "3 punts"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:78
+#: plugins/tools/basictools/kis_tool_ellipse.cc:80
 #, kde-format
 msgid "Place the ellipse inside a bounding box"
 msgstr "Situa l'el·lipse dins d'un quadro contenidor"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:79
+#: plugins/tools/basictools/kis_tool_ellipse.cc:81
 #, kde-format
 msgid "Place the ellipse by setting the major axis and width"
 msgstr "Situa l'el·lipse definint l'eix principal i l'amplària"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:110
+#: plugins/tools/basictools/kis_tool_ellipse.cc:112
 #, kde-format
 msgctxt "Ellipse tool placement mode option label"
 msgid "Placement:"
 msgstr "Posició:"
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:343
+#: plugins/tools/basictools/kis_tool_ellipse.cc:345
 #, kde-format
 msgid "Click to place the other end of the ellipse axis."
 msgstr "Cliqueu per a situar l'altre extrem de l'eix de l'el·lipse."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:345
+#: plugins/tools/basictools/kis_tool_ellipse.cc:347
 #, kde-format
 msgid "Click to set the ellipse width."
 msgstr "Cliqueu per a establir l'amplària de l'el·lipse."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:347
+#: plugins/tools/basictools/kis_tool_ellipse.cc:349
 #, kde-format
 msgid ""
 "Drag handles to adjust the ellipse. Press Enter to apply or Esc to cancel."
@@ -66808,9 +66791,9 @@ msgstr ""
 "Arrossegueu les anses per a ajustar l'el·lipse. Premeu «Retorn» per a "
 "aplicar o «Esc» per a cancel·lar."
 
-#: plugins/tools/basictools/kis_tool_ellipse.cc:584
-#: plugins/tools/basictools/kis_tool_ellipse.cc:606
-#: plugins/tools/basictools/kis_tool_ellipse.cc:623
+#: plugins/tools/basictools/kis_tool_ellipse.cc:587
+#: plugins/tools/basictools/kis_tool_ellipse.cc:609
+#: plugins/tools/basictools/kis_tool_ellipse.cc:626
 msgctxt "(qtundo-format)"
 msgid "Draw Ellipse"
 msgstr "Dibuixa una el·lipse"

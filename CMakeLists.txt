@@ -152,6 +152,12 @@ set(KRITA_VERSION_RELEASE 0)
 # - Stable: Set to 100, bump to 101 if emergency update is needed
 set(KRITA_VERSION_REVISION 0)
 
+# This version does **not** correspond to the patch version
+# of Krita. Instead, it is just incremented for every public
+# (including alpha and beta) release of KRITA_STABLE_VERSION_MINOR
+# branch
+set(KRITA_APK_VERSION_TRANSITIONAL 0)
+
 # In MSI packages we cannot use the fourth digit for release numbering,
 # since this digit is used by Microsoft Store internally. Hence we cannot
 # release hotfix releases (like 6.0.1.1, 6.0.1.2) on Windows. Therefore we
@@ -1747,6 +1753,12 @@ if (ANDROID)
 endif()
 
 if(DEFINED QTANDROID_EXPORTED_TARGET AND NOT TARGET "create-apk")
+    # we don't need to add an explicit dependency to create-apk-krita,
+    # because ecm_androiddeployqt repopulates the project directory
+    # every time unconditionally
+    configure_file(${CMAKE_SOURCE_DIR}/packaging/android/apk/version.properties.in
+                   ${CMAKE_BINARY_DIR}/version.properties)
+
     set (_CMAKE_ANDROID_DIR "${ECM_DIR}/../toolchain")
     list(LENGTH QTANDROID_EXPORTED_TARGET targetsCount)
     include(${_CMAKE_ANDROID_DIR}/ECMAndroidDeployQt.cmake)
@@ -1763,7 +1775,26 @@ if(DEFINED QTANDROID_EXPORTED_TARGET AND NOT TARGET "create-apk")
         endif()
 
         ecm_androiddeployqt("${exportedTarget}" "${ECM_ADDITIONAL_FIND_ROOT_PATH}")
-        set_target_properties(create-apk-${exportedTarget} PROPERTIES ANDROID_APK_DIR "${APK_DIR}")
+
+        set(VERSIONED_BUILD_DIR "${CMAKE_BINARY_DIR}/${QTANDROID_EXPORTED_TARGET}_build_apk.in/")
+
+        # `ecm_androiddeployqt` unconditionally recopies the entire apk folder
+        # on every run. Therefore we have two options: 1) write `version.properties`
+        # in the **source** tree (which is ugly), or 2) make another copy of the folder in
+        # the build tree (not very pretty also).
+        #
+        # The code below uses the second approach and just copies the apk-source folder
+        # into the build tree under a custom name (`*_build_apk.in`). This folder will
+        # later be used by `ecm_androiddeployqt` for building the actual apk.
+        add_custom_target(prepare-versioned-apk-build-dir-${exportedTarget}
+            COMMAND ${CMAKE_COMMAND} -E echo "Prepare a versioned build directory for $<TARGET_NAME:${QTANDROID_EXPORTED_TARGET}>"
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "${VERSIONED_BUILD_DIR}"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${APK_DIR}" "${VERSIONED_BUILD_DIR}"
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/version.properties "${VERSIONED_BUILD_DIR}"
+        )
+
+        add_dependencies(create-apk-${exportedTarget} prepare-versioned-apk-build-dir-${exportedTarget})
+        set_target_properties(create-apk-${exportedTarget} PROPERTIES ANDROID_APK_DIR "${VERSIONED_BUILD_DIR}")
     endforeach()
 elseif(ANDROID)
     message(STATUS "You can export a target by specifying -DQTANDROID_EXPORTED_TARGET=<targetname> and -DANDROID_APK_DIR=<paths>")
